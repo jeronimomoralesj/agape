@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { Cross, Sparkles } from 'lucide-react';
 import { ROSARY_STEPS, ROSARY_AFTER_EACH } from '@/lib/mysteries';
 import { Reveal } from '@/components/motion/Reveal';
@@ -38,6 +38,10 @@ export default function RosaryGuide() {
   // Measured path lengths drive a dash-offset draw animation —
   // more reliable on mobile Safari than framer's pathLength trick.
   const [lengths, setLengths] = useState<{ loop: number; tail: number } | null>(null);
+  // whileInView doesn't fire on SVG children in iOS Safari — observe the
+  // HTML wrapper instead and drive every SVG animation from this one signal.
+  const svgWrapRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(svgWrapRef, { once: true, margin: '-40px' });
 
   // Lay out beads along the real path geometry after mount
   useEffect(() => {
@@ -139,6 +143,7 @@ export default function RosaryGuide() {
 
         {/* Interactive SVG rosary */}
         <Reveal className="mx-auto w-full max-w-md">
+          <div ref={svgWrapRef}>
           <svg
             viewBox="0 0 400 520"
             className="h-auto w-full drop-shadow-[0_0_30px_rgba(212,175,55,0.15)]"
@@ -161,8 +166,7 @@ export default function RosaryGuide() {
                   strokeLinecap="round"
                   strokeDasharray={lengths.loop}
                   initial={{ strokeDashoffset: lengths.loop }}
-                  whileInView={{ strokeDashoffset: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
+                  animate={{ strokeDashoffset: inView ? 0 : lengths.loop }}
                   transition={{ duration: 2.2, ease: 'easeInOut' }}
                 />
                 <motion.path
@@ -174,8 +178,7 @@ export default function RosaryGuide() {
                   strokeLinecap="round"
                   strokeDasharray={lengths.tail}
                   initial={{ strokeDashoffset: lengths.tail }}
-                  whileInView={{ strokeDashoffset: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
+                  animate={{ strokeDashoffset: inView ? 0 : lengths.tail }}
                   transition={{ duration: 0.8, ease: 'easeInOut', delay: 2.0 }}
                 />
               </>
@@ -190,9 +193,8 @@ export default function RosaryGuide() {
                 r={bead.large ? 6.5 : 4}
                 fill={bead.large ? '#D4AF37' : '#E0F2FE'}
                 fillOpacity={bead.large ? 0.95 : 0.8}
-                initial={{ opacity: 0, scale: 0 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: inView ? 1 : 0 }}
                 transition={{ duration: 0.4, delay: 0.4 + index * 0.025 }}
               />
             ))}
@@ -206,18 +208,16 @@ export default function RosaryGuide() {
               fill="#E0F2FE"
               stroke="#D4AF37"
               strokeWidth="2"
-              initial={{ opacity: 0, scale: 0 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: inView ? 1 : 0 }}
               transition={{ duration: 0.5, delay: 2.0 }}
             />
 
             {/* Cross */}
             <motion.g
-              initial={{ opacity: 0, scale: 0 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 2.8 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: inView ? 1 : 0 }}
+              transition={{ duration: 0.6, delay: 2.6 }}
             >
               <rect x={196.5} y={446} width={7} height={44} rx={2} fill="#D4AF37" />
               <rect x={184} y={458} width={32} height={7} rx={2} fill="#D4AF37" />
@@ -285,6 +285,7 @@ export default function RosaryGuide() {
             <Cross className="h-4 w-4 shrink-0 text-oro" />
             {ROSARY_STEPS.find((s) => s.step === activeStep)?.label}
           </motion.p>
+          </div>
         </Reveal>
       </div>
     </section>
