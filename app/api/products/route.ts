@@ -2,6 +2,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import Product from '@/models/Product';
 import { pingIndexNow } from '@/lib/indexnow';
+import { toPublicImages } from '@/lib/products';
+
+function errorDetail(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +21,14 @@ export async function GET(request: NextRequest) {
     if (!includeInactive) query.isActive = true;
 
     const products = await Product.find(query).sort({ createdAt: -1 }).lean();
-    return NextResponse.json(products);
+    // Serve image URLs, never raw base64 — keeps this response tiny
+    return NextResponse.json(products.map((p) => toPublicImages(p)));
   } catch (error) {
     console.error('GET /api/products', error);
-    return NextResponse.json({ error: 'Error al cargar los productos' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Error al cargar los productos', detail: errorDetail(error) },
+      { status: 500 }
+    );
   }
 }
 
@@ -38,9 +47,12 @@ export async function POST(request: NextRequest) {
       isActive: body.isActive ?? true,
     });
     await pingIndexNow(['/', `/producto/${product._id}`, '/sitemap.xml']);
-    return NextResponse.json(product, { status: 201 });
+    return NextResponse.json(toPublicImages(product.toObject()), { status: 201 });
   } catch (error) {
     console.error('POST /api/products', error);
-    return NextResponse.json({ error: 'Error al crear el producto' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Error al crear el producto', detail: errorDetail(error) },
+      { status: 400 }
+    );
   }
 }

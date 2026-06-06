@@ -81,18 +81,14 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
-  ...(process.env.GOOGLE_SITE_VERIFICATION || process.env.BING_SITE_VERIFICATION
-    ? {
-        verification: {
-          ...(process.env.GOOGLE_SITE_VERIFICATION
-            ? { google: process.env.GOOGLE_SITE_VERIFICATION }
-            : {}),
-          ...(process.env.BING_SITE_VERIFICATION
-            ? { other: { 'msvalidate.01': process.env.BING_SITE_VERIFICATION } }
-            : {}),
-        },
-      }
-    : {}),
+  verification: {
+    google:
+      process.env.GOOGLE_SITE_VERIFICATION ||
+      'gWuKX4PsNu7RpFF6BpIgR5bIoyscl5v_uUIgqEK4oUs',
+    ...(process.env.BING_SITE_VERIFICATION
+      ? { other: { 'msvalidate.01': process.env.BING_SITE_VERIFICATION } }
+      : {}),
+  },
   other: {
     'geo.region': 'CO',
     'geo.placename': 'Colombia',

@@ -29,12 +29,21 @@ export async function PUT(request: NextRequest, { params }: Params) {
   try {
     await dbConnect();
     const body = await request.json();
+
+    // The admin form receives the lightweight URL (/api/blog/:id/image) instead
+    // of raw base64 — swap it back to the stored image when saving.
+    let image: string = body.image ?? '';
+    if (image.endsWith(`/api/blog/${params.id}/image`) || image === `/api/blog/${params.id}/image`) {
+      const existing = await BlogPost.findById(params.id).select('image').lean();
+      image = existing?.image ?? '';
+    }
+
     const post = await BlogPost.findByIdAndUpdate(
       params.id,
       {
         title: body.title,
         content: body.content,
-        image: body.image ?? '',
+        image,
         isPublished: body.isPublished,
       },
       { new: true, runValidators: true }

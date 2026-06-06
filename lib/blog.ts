@@ -2,6 +2,16 @@ import { dbConnect } from './db';
 import BlogPostModel from '@/models/BlogPost';
 import type { BlogPost } from './types';
 
+/** Replaces a stored base64 cover with its lightweight public URL. */
+export function toPublicCover<T extends { _id: unknown; image?: string }>(post: T): T {
+  return {
+    ...post,
+    image: post.image?.startsWith('data:')
+      ? `/api/blog/${String(post._id)}/image`
+      : post.image,
+  };
+}
+
 /** Published posts, newest first. Degrades to [] if the DB is unreachable. */
 export async function fetchPublishedPosts(): Promise<BlogPost[]> {
   try {
@@ -9,7 +19,7 @@ export async function fetchPublishedPosts(): Promise<BlogPost[]> {
     const docs = await BlogPostModel.find({ isPublished: true })
       .sort({ createdAt: -1 })
       .lean();
-    return JSON.parse(JSON.stringify(docs));
+    return JSON.parse(JSON.stringify(docs)).map(toPublicCover);
   } catch (error) {
     console.error('fetchPublishedPosts: base de datos no disponible', error);
     return [];
@@ -20,7 +30,7 @@ export async function fetchPostById(id: string): Promise<BlogPost | null> {
   try {
     await dbConnect();
     const doc = await BlogPostModel.findOne({ _id: id, isPublished: true }).lean();
-    return doc ? JSON.parse(JSON.stringify(doc)) : null;
+    return doc ? toPublicCover(JSON.parse(JSON.stringify(doc))) : null;
   } catch (error) {
     console.error('fetchPostById: base de datos no disponible', error);
     return null;

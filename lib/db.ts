@@ -31,7 +31,13 @@ export async function dbConnect(): Promise<typeof mongoose> {
     cached.promise = mongoose
       .connect(MONGODB_URI, {
         bufferCommands: false,
-        maxPoolSize: 10,
+        maxPoolSize: 5, // serverless: small pools, many lambdas
+        // Fail fast instead of hanging until the platform kills the function.
+        // (Default is 30s, which exceeds Vercel's function timeout and shows
+        // up as endless spinners + opaque 500s.)
+        serverSelectionTimeoutMS: 7000,
+        connectTimeoutMS: 7000,
+        socketTimeoutMS: 30000,
       })
       .catch((err) => {
         // Reset so the next request retries instead of reusing a rejected promise

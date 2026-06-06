@@ -20,13 +20,14 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [hasBlog, setHasBlog] = useState(false);
 
-  // Only show the Blog tab when there is at least one published post
+  // Only show the Blog tab when there is at least one published post.
+  // Checked once per page load (not per navigation) to avoid extra requests.
   useEffect(() => {
     fetch('/api/blog?countOnly=true')
       .then((res) => (res.ok ? res.json() : { count: 0 }))
       .then((data) => setHasBlog((data?.count ?? 0) > 0))
       .catch(() => setHasBlog(false));
-  }, [pathname]);
+  }, []);
 
   const navLinks = hasBlog
     ? [...BASE_LINKS, { href: '/blog', label: 'Blog' }]

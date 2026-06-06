@@ -3,6 +3,7 @@ import { dbConnect } from '@/lib/db';
 import BlogPost from '@/models/BlogPost';
 import { ADMIN_COOKIE, verifySessionToken } from '@/lib/adminAuth';
 import { pingIndexNow } from '@/lib/indexnow';
+import { toPublicCover } from '@/lib/blog';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,10 +28,17 @@ export async function GET(request: NextRequest) {
 
     const query = includeDrafts ? {} : { isPublished: true };
     const posts = await BlogPost.find(query).sort({ createdAt: -1 }).lean();
-    return NextResponse.json(posts);
+    // Serve cover-image URLs, never raw base64 — keeps this response tiny
+    return NextResponse.json(posts.map((p) => toPublicCover(p)));
   } catch (error) {
     console.error('GET /api/blog', error);
-    return NextResponse.json({ error: 'Error al cargar el blog' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Error al cargar el blog',
+        detail: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
   }
 }
 

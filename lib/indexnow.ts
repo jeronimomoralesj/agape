@@ -12,9 +12,11 @@ export async function pingIndexNow(paths: string[]): Promise<void> {
   if (!key || !process.env.NEXT_PUBLIC_SITE_URL) return;
 
   try {
+    // Hard 3s cap — an indexing ping must never slow down the admin
     await fetch('https://api.indexnow.org/indexnow', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      signal: AbortSignal.timeout(3000),
       body: JSON.stringify({
         host: new URL(SITE_URL).host,
         key,
