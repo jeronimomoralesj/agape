@@ -9,6 +9,7 @@ import { useCart } from '@/components/cart/CartContext';
 
 const BASE_LINKS = [
   { href: '/', label: 'Tienda' },
+  { href: '/mision', label: 'Misión' },
   { href: '/#misterio-del-dia', label: 'Misterios' },
   { href: '/#guia-rosario', label: 'Cómo Rezar' },
 ];
