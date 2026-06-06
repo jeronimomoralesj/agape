@@ -38,6 +38,7 @@ export default function Footer() {
               <li><Link href="/#misterio-del-dia" className="transition-colors hover:text-oro-light">Misterio del Día</Link></li>
               <li><Link href="/#guia-rosario" className="transition-colors hover:text-oro-light">Cómo rezar el Rosario</Link></li>
               <li><Link href="/devoluciones" className="transition-colors hover:text-oro-light">Cambios y devoluciones</Link></li>
+              <li><Link href="/privacidad" className="transition-colors hover:text-oro-light">Política de privacidad</Link></li>
             </ul>
           </nav>
 

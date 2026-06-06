@@ -1,14 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import Product from '@/models/Product';
-import {
-  DEFAULT_DESCRIPTION,
-  SITE_NAME,
-  SITE_URL,
-  escapeXml,
-  productImageUrl,
-  productUrl,
-} from '@/lib/seo';
+import { DEFAULT_DESCRIPTION, SITE_NAME, escapeXml } from '@/lib/seo';
 import { finalPrice } from '@/lib/types';
 import type { Product as ProductType } from '@/lib/types';
 
@@ -20,7 +13,23 @@ export const dynamic = 'force-dynamic';
  * Register it in Merchant Center → Products → Feeds → Scheduled fetch.
  * Bing/Microsoft Shopping accepts the same format in Merchant Center de Microsoft.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Base URL: prefer the configured canonical domain; otherwise derive it from
+  // the request so the feed never emits localhost/invalid URLs.
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
+  const base = configured && !configured.includes('localhost')
+    ? configured
+    : `${proto}://${host}`;
+
+  const productUrl = (p: { _id: string }) => `${base}/producto/${p._id}`;
+  const productImageUrl = (p: { _id: string; images: string[] }, index: number) => {
+    const image = p.images[index];
+    if (!image) return `${base}/brand/pulseras.jpeg`;
+    if (image.startsWith('data:')) return `${base}/api/products/${p._id}/image/${index}`;
+    return image.startsWith('http') ? image : `${base}${image}`;
+  };
   let products: ProductType[] = [];
   try {
     await dbConnect();
@@ -75,7 +84,7 @@ ${hasDiscount ? `      <g:sale_price>${discounted.toFixed(2)} COP</g:sale_price>
 <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
   <channel>
     <title>${escapeXml(`${SITE_NAME} — Pulseras católicas de cristal y oro`)}</title>
-    <link>${SITE_URL}</link>
+    <link>${base}</link>
     <description>${escapeXml(DEFAULT_DESCRIPTION)}</description>
 ${items}
   </channel>
