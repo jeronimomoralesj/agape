@@ -6,6 +6,7 @@ import { ImagePlus, Loader2, Save, Star, Trash2, X } from 'lucide-react';
 import SmartImage from '@/components/ui/SmartImage';
 import type { Product } from '@/lib/types';
 import { formatPrice } from '@/lib/types';
+import { fileToCompressedDataUrl } from '@/lib/imageCompress';
 
 export const MAX_IMAGES = 4;
 
@@ -28,24 +29,6 @@ const EMPTY: ProductFormValues = {
   stock: 0,
   isActive: true,
 };
-
-/**
- * Reads an image file and returns a compressed base64 data-URL
- * (downscaled to ≤1000px, JPEG q0.82) so 4 images stay well under
- * MongoDB's document limit and Vercel's request body limit.
- */
-async function fileToCompressedDataUrl(file: File): Promise<string> {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, 1000 / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('No se pudo procesar la imagen');
-  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-  return canvas.toDataURL('image/jpeg', 0.82);
-}
 
 export default function ProductForm({
   initial,

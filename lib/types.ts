@@ -31,6 +31,15 @@ export interface CartItem {
   stock: number;
 }
 
+export interface BlogPost {
+  _id: string;
+  title: string;
+  content: string;
+  image?: string;
+  isPublished: boolean;
+  createdAt: string;
+}
+
 export type OrderStatus = 'Pending' | 'Processing' | 'Shipped';
 
 export interface Order {

@@ -11,6 +11,7 @@ export async function middleware(request: NextRequest) {
   const isProtectedApi =
     !isPublicViewPing &&
     ((pathname.startsWith('/api/products') && request.method !== 'GET') ||
+      (pathname.startsWith('/api/blog') && request.method !== 'GET') ||
       (pathname.startsWith('/api/orders') && request.method === 'GET'));
 
   if (!isAdminPage && !isProtectedApi) return NextResponse.next();
@@ -28,5 +29,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/admin', '/api/products/:path*', '/api/products', '/api/orders'],
+  matcher: [
+    '/admin/:path*',
+    '/admin',
+    '/api/products/:path*',
+    '/api/products',
+    '/api/blog/:path*',
+    '/api/blog',
+    '/api/orders',
+  ],
 };

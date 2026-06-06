@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '@/components/cart/CartContext';
 
-const NAV_LINKS = [
+const BASE_LINKS = [
   { href: '/', label: 'Tienda' },
   { href: '/#misterio-del-dia', label: 'Misterios' },
   { href: '/#guia-rosario', label: 'Cómo Rezar' },
@@ -18,6 +18,19 @@ export default function Header() {
   const { totalItems, openCart, pulse } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hasBlog, setHasBlog] = useState(false);
+
+  // Only show the Blog tab when there is at least one published post
+  useEffect(() => {
+    fetch('/api/blog?countOnly=true')
+      .then((res) => (res.ok ? res.json() : { count: 0 }))
+      .then((data) => setHasBlog((data?.count ?? 0) > 0))
+      .catch(() => setHasBlog(false));
+  }, [pathname]);
+
+  const navLinks = hasBlog
+    ? [...BASE_LINKS, { href: '/blog', label: 'Blog' }]
+    : BASE_LINKS;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -52,7 +65,7 @@ export default function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -130,7 +143,7 @@ export default function Header() {
             className="overflow-hidden border-t border-oro/20 bg-cielo-50/95 backdrop-blur-xl md:hidden"
           >
             <ul className="space-y-1 px-6 py-4">
-              {NAV_LINKS.map((link, index) => (
+              {navLinks.map((link, index) => (
                 <motion.li
                   key={link.href}
                   initial={{ opacity: 0, x: -16 }}

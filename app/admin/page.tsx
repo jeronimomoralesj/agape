@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   BarChart3,
+  BookOpen,
   Crown,
   Eye,
   Gem,
@@ -18,11 +19,12 @@ import {
   TrendingUp,
   Wallet,
 } from 'lucide-react';
-import type { Order, OrderStatus, Product } from '@/lib/types';
+import type { BlogPost, Order, OrderStatus, Product } from '@/lib/types';
 import { formatPrice } from '@/lib/types';
 import ProductForm, { type ProductFormValues } from '@/components/admin/ProductForm';
+import BlogForm, { type BlogFormValues } from '@/components/admin/BlogForm';
 
-type Tab = 'resumen' | 'productos' | 'pedidos';
+type Tab = 'resumen' | 'productos' | 'pedidos' | 'blog';
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   Pending: 'Pendiente',
@@ -41,19 +43,24 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('resumen');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [creatingPost, setCreatingPost] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [productsRes, ordersRes] = await Promise.all([
+      const [productsRes, ordersRes, postsRes] = await Promise.all([
         fetch('/api/products?all=true', { cache: 'no-store' }),
         fetch('/api/orders', { cache: 'no-store' }),
+        fetch('/api/blog?all=true', { cache: 'no-store' }),
       ]);
       if (productsRes.ok) setProducts(await productsRes.json());
       if (ordersRes.ok) setOrders(await ordersRes.json());
+      if (postsRes.ok) setPosts(await postsRes.json());
     } finally {
       setLoading(false);
     }
@@ -143,10 +150,40 @@ export default function AdminDashboard() {
     }
   };
 
+  const createPost = async (values: BlogFormValues) => {
+    const res = await fetch('/api/blog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+    if (!res.ok) throw new Error('No se pudo crear la entrada');
+    setCreatingPost(false);
+    await loadData();
+  };
+
+  const updatePost = async (values: BlogFormValues) => {
+    if (!editingPost) return;
+    const res = await fetch(`/api/blog/${editingPost._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+    if (!res.ok) throw new Error('No se pudo actualizar la entrada');
+    setEditingPost(null);
+    await loadData();
+  };
+
+  const deletePost = async (post: BlogPost) => {
+    if (!window.confirm(`¿Eliminar la entrada "${post.title}" definitivamente?`)) return;
+    const res = await fetch(`/api/blog/${post._id}`, { method: 'DELETE' });
+    if (res.ok) await loadData();
+  };
+
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'resumen', label: 'Resumen', icon: <BarChart3 className="h-4 w-4" /> },
     { key: 'productos', label: 'Productos', icon: <Gem className="h-4 w-4" /> },
     { key: 'pedidos', label: 'Pedidos', icon: <ReceiptText className="h-4 w-4" /> },
+    { key: 'blog', label: 'Blog', icon: <BookOpen className="h-4 w-4" /> },
   ];
 
   return (
@@ -505,6 +542,108 @@ export default function AdminDashboard() {
                     ))}
                   </ul>
                 )}
+              </div>
+            )}
+
+            {/* ────────────── BLOG ────────────── */}
+            {tab === 'blog' && (
+              <div className="space-y-6">
+                {creatingPost || editingPost ? (
+                  <BlogForm
+                    initial={editingPost}
+                    onSubmit={editingPost ? updatePost : createPost}
+                    onCancel={() => {
+                      setCreatingPost(false);
+                      setEditingPost(null);
+                    }}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setCreatingPost(true)}
+                    className="btn-gold"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Nueva entrada
+                  </button>
+                )}
+
+                <div className="overflow-hidden rounded-3xl border border-oro/20 bg-white/75 shadow-card">
+                  {posts.length === 0 ? (
+                    <p className="p-8 text-center text-sm text-royal/55">
+                      No hay entradas todavía. Mientras no exista al menos una entrada
+                      publicada, la pestaña “Blog” no se muestra en la tienda.
+                    </p>
+                  ) : (
+                    <ul className="divide-y divide-oro/15">
+                      <AnimatePresence initial={false}>
+                        {posts.map((post) => (
+                          <motion.li
+                            key={post._id}
+                            layout
+                            exit={{ opacity: 0, x: 40 }}
+                            className="flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6"
+                          >
+                            <span className="relative h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-cielo-100">
+                              {post.image ? (
+                                <SmartImage
+                                  src={post.image}
+                                  alt={post.title}
+                                  fill
+                                  sizes="80px"
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <span className="flex h-full w-full items-center justify-center">
+                                  <BookOpen className="h-5 w-5 text-royal/30" />
+                                </span>
+                              )}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-semibold text-royal">
+                                {post.title}
+                                {!post.isPublished && (
+                                  <span className="ml-2 rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">
+                                    Borrador
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-xs text-royal/55">
+                                {new Date(post.createdAt).toLocaleDateString('es-CO', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric',
+                                })}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingPost(post);
+                                  setCreatingPost(false);
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                aria-label={`Editar ${post.title}`}
+                                className="rounded-full border border-royal/15 p-2.5 text-royal/60 transition-colors hover:border-oro hover:text-oro-deep"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deletePost(post)}
+                                aria-label={`Eliminar ${post.title}`}
+                                className="rounded-full border border-royal/15 p-2.5 text-royal/60 transition-colors hover:border-red-300 hover:text-red-500"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </motion.li>
+                        ))}
+                      </AnimatePresence>
+                    </ul>
+                  )}
+                </div>
               </div>
             )}
           </motion.div>
