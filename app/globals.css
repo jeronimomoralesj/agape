@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cielo-50 text-royal-night antialiased;
+  font-feature-settings: 'liga' 1, 'kern' 1;
+}
+
+::selection {
+  @apply bg-oro/30 text-royal-ink;
+}
+
+/* Elegant thin scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-royal/20;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-oro/60;
+}
+
+@layer components {
+  /* Golden shimmer sweep used on primary buttons */
+  .btn-gold {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full
+      bg-gradient-to-r from-oro-deep via-oro to-oro-deep px-8 py-3.5
+      font-sans text-sm font-semibold uppercase tracking-[0.18em] text-royal-ink
+      transition-all duration-500 hover:shadow-aura focus:outline-none
+      focus-visible:ring-2 focus-visible:ring-oro focus-visible:ring-offset-2;
+  }
+  .btn-gold::after {
+    content: '';
+    @apply pointer-events-none absolute inset-0 bg-gold-sheen opacity-0 transition-opacity duration-300;
+    background-size: 250% 100%;
+  }
+  .btn-gold:hover::after {
+    @apply animate-shimmer opacity-100;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-oro/60
+      px-8 py-3.5 font-sans text-sm font-semibold uppercase tracking-[0.18em] text-royal
+      transition-all duration-500 hover:border-oro hover:bg-oro/10 hover:shadow-aura-soft
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-oro focus-visible:ring-offset-2;
+  }
+
+  .gold-divider {
+    @apply mx-auto h-px w-24 bg-gradient-to-r from-transparent via-oro to-transparent;
+  }
+
+  .section-eyebrow {
+    @apply font-sans text-xs font-semibold uppercase tracking-[0.35em] text-oro-deep;
+  }
+
+  .input-luxe {
+    @apply w-full rounded-xl border border-royal/15 bg-white/80 px-4 py-3 font-sans text-sm
+      text-royal-night placeholder:text-royal/40 transition-all duration-300
+      focus:border-oro focus:outline-none focus:ring-2 focus:ring-oro/30;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

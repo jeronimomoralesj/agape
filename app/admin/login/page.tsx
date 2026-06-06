@@ -1,0 +1,93 @@
+'use client';
+
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { KeyRound, Loader2, Lock } from 'lucide-react';
+
+export default function AdminLoginPage() {
+  const router = useRouter();
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Contraseña incorrecta');
+      }
+      router.push('/admin');
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error inesperado');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-[75vh] items-center justify-center px-6 py-16">
+      <motion.div
+        initial={{ opacity: 0, y: 28 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md rounded-3xl border border-oro/20 bg-white/80 p-10 shadow-luxe backdrop-blur-sm"
+      >
+        <div className="flex flex-col items-center text-center">
+          <span className="relative h-16 w-16 overflow-hidden rounded-full ring-2 ring-oro/50 shadow-aura-soft">
+            <Image
+              src="/brand/logo.jpeg"
+              alt="Logotipo Ágape"
+              fill
+              sizes="64px"
+              className="scale-[2.1] object-cover object-[50%_54%]"
+            />
+          </span>
+          <h1 className="mt-5 font-serif text-3xl font-bold text-royal">Panel Ágape</h1>
+          <p className="mt-2 text-sm text-royal/60">
+            Acceso restringido. Ingresa la contraseña de administración.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          <div className="relative">
+            <KeyRound className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-royal/40" />
+            <input
+              type="password"
+              required
+              autoFocus
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Contraseña"
+              className="input-luxe !pl-11"
+            />
+          </div>
+
+          {error && (
+            <motion.p
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-600"
+            >
+              {error}
+            </motion.p>
+          )}
+
+          <button type="submit" disabled={loading} className="btn-gold w-full disabled:opacity-60">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+            Entrar
+          </button>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
