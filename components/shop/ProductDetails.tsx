@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Gem, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react';
+import { ChevronDown, Gem, Minus, Plus, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { finalPrice, formatPrice } from '@/lib/types';
 import { useCart } from '@/components/cart/CartContext';
-import { getMysteryByKey } from '@/lib/mysteries';
 
 function Accordion({
   title,
@@ -60,13 +59,12 @@ export default function ProductDetails({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const soldOut = product.stock < 1;
-  const mystery = getMysteryByKey(product.category);
   const discount = product.discount ?? 0;
   const price = finalPrice(product);
 
   return (
     <div className="lg:sticky lg:top-28">
-      <p className="section-eyebrow">Colección {product.category}</p>
+      <p className="section-eyebrow">Pulsera Ágape</p>
       <h1 className="mt-3 text-balance font-serif text-4xl font-bold leading-tight text-royal sm:text-5xl">
         {product.title}
       </h1>
@@ -136,46 +134,18 @@ export default function ProductDetails({ product }: { product: Product }) {
         </span>
       </div>
 
-      {/* Accordions */}
+      {/* Care & materials */}
       <div className="mt-10 border-t border-oro/20">
         <Accordion
-          title="Significado espiritual"
-          icon={<Sparkles className="h-5 w-5" strokeWidth={1.75} />}
+          title="Materiales y cuidado"
+          icon={<Gem className="h-5 w-5" strokeWidth={1.75} />}
           defaultOpen
         >
-          {product.spiritualMeaning ? (
-            <p>{product.spiritualMeaning}</p>
-          ) : (
-            <p>
-              Esta pieza pertenece a la colección de los{' '}
-              <strong>Misterios {product.category}</strong>
-              {mystery ? ` (${mystery.days.toLowerCase()})` : ''}. Cada cuenta es una
-              invitación a la oración y un recordatorio de que{' '}
-              <em>“Él sana a los de corazón herido y venda sus heridas” (Salmo 147:3)</em>.
-            </p>
-          )}
-          {mystery && (
-            <ul className="mt-4 space-y-1.5">
-              {mystery.mysteries.map((m, i) => (
-                <li key={m} className="flex gap-2">
-                  <span className="font-semibold text-oro-deep">{i + 1}.</span>
-                  {m}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Accordion>
-
-        <Accordion title="Materiales" icon={<Gem className="h-5 w-5" strokeWidth={1.75} />}>
-          {product.materials ? (
-            <p>{product.materials}</p>
-          ) : (
-            <p>
-              Cristales facetados de alta calidad, componentes con baño de oro de 18k y
-              dije de cruz. Hipoalergénica y resistente al uso diario. Evita el contacto
-              prolongado con agua y perfumes para conservar su brillo.
-            </p>
-          )}
+          <p>
+            Cristales facetados de alta calidad y componentes con baño de oro de 18k,
+            ensamblados a mano. Hipoalergénica y pensada para el uso diario. Evita el
+            contacto prolongado con agua y perfumes para conservar su brillo.
+          </p>
         </Accordion>
       </div>
     </div>

@@ -58,11 +58,6 @@ export default function ProductCard({ product }: { product: Product }) {
             )}
           </motion.div>
 
-          {/* Category ribbon */}
-          <span className="absolute left-3 top-3 rounded-full border border-oro/40 bg-cielo-50/85 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-royal backdrop-blur-sm sm:left-4 sm:top-4">
-            {product.category}
-          </span>
-
           {/* Status badges */}
           <span className="absolute right-3 top-3 flex flex-col items-end gap-1.5 sm:right-4 sm:top-4">
             {discount > 0 && (
@@ -90,7 +85,7 @@ export default function ProductCard({ product }: { product: Product }) {
               className="flex items-center gap-2 rounded-full border border-oro/60 bg-cielo-50/90 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-royal backdrop-blur-sm"
             >
               <Eye className="h-3.5 w-3.5" />
-              Explorar significado
+              Ver detalle
             </motion.span>
           </motion.div>
         </div>

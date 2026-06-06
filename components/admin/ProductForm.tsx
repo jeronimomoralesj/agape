@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { ImagePlus, Loader2, Save, Star, Trash2, X } from 'lucide-react';
 import SmartImage from '@/components/ui/SmartImage';
 import type { Product } from '@/lib/types';
-import { CATEGORIES, formatPrice } from '@/lib/types';
+import { formatPrice } from '@/lib/types';
 
 export const MAX_IMAGES = 4;
 
@@ -15,11 +15,8 @@ export interface ProductFormValues {
   price: number;
   discount: number;
   images: string[];
-  category: string;
   stock: number;
   isActive: boolean;
-  spiritualMeaning: string;
-  materials: string;
 }
 
 const EMPTY: ProductFormValues = {
@@ -28,11 +25,8 @@ const EMPTY: ProductFormValues = {
   price: 0,
   discount: 0,
   images: [],
-  category: 'Gozosos',
   stock: 0,
   isActive: true,
-  spiritualMeaning: '',
-  materials: '',
 };
 
 /**
@@ -71,11 +65,8 @@ export default function ProductForm({
           price: initial.price,
           discount: initial.discount ?? 0,
           images: initial.images.slice(0, MAX_IMAGES),
-          category: initial.category,
           stock: initial.stock,
           isActive: initial.isActive,
-          spiritualMeaning: initial.spiritualMeaning ?? '',
-          materials: initial.materials ?? '',
         }
       : EMPTY
   );
@@ -313,23 +304,6 @@ export default function ProductForm({
           />
         </div>
 
-        <div>
-          <label className="mb-1.5 block text-sm font-semibold text-royal">
-            Categoría (Misterio)
-          </label>
-          <select
-            value={values.category}
-            onChange={(e) => set('category', e.target.value)}
-            className="input-luxe"
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                Misterios {c}
-              </option>
-            ))}
-          </select>
-        </div>
-
         <div className="flex items-center sm:col-span-2">
           <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-royal">
             <input
@@ -340,30 +314,6 @@ export default function ProductForm({
             />
             Visible en la tienda
           </label>
-        </div>
-
-        <div className="sm:col-span-2">
-          <label className="mb-1.5 block text-sm font-semibold text-royal">
-            Significado espiritual (opcional)
-          </label>
-          <textarea
-            rows={2}
-            value={values.spiritualMeaning}
-            onChange={(e) => set('spiritualMeaning', e.target.value)}
-            className="input-luxe resize-none"
-          />
-        </div>
-
-        <div className="sm:col-span-2">
-          <label className="mb-1.5 block text-sm font-semibold text-royal">
-            Materiales (opcional)
-          </label>
-          <textarea
-            rows={2}
-            value={values.materials}
-            onChange={(e) => set('materials', e.target.value)}
-            className="input-luxe resize-none"
-          />
         </div>
       </div>
 

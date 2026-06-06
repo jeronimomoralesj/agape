@@ -16,15 +16,10 @@ const ProductSchema = new Schema(
         'Máximo 4 imágenes por producto',
       ],
     },
-    category: {
-      type: String,
-      required: true,
-      enum: ['Gozosos', 'Dolorosos', 'Gloriosos', 'Luminosos'],
-    },
     stock: { type: Number, required: true, min: 0, default: 0 },
     isActive: { type: Boolean, default: true },
-    spiritualMeaning: { type: String, default: '' },
-    materials: { type: String, default: '' },
+    /** Product page views, incremented by /api/products/[id]/view */
+    views: { type: Number, default: 0, min: 0 },
     createdAt: { type: Date, default: Date.now },
   },
   { versionKey: false }

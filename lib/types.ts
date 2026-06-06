@@ -1,6 +1,5 @@
+// Used by the Misterios section of the homepage (lib/mysteries.ts)
 export type Category = 'Gozosos' | 'Dolorosos' | 'Gloriosos' | 'Luminosos';
-
-export const CATEGORIES: Category[] = ['Gozosos', 'Dolorosos', 'Gloriosos', 'Luminosos'];
 
 export interface Product {
   _id: string;
@@ -10,11 +9,10 @@ export interface Product {
   /** Discount percentage (0–90) */
   discount?: number;
   images: string[];
-  category: Category;
   stock: number;
   isActive: boolean;
-  spiritualMeaning?: string;
-  materials?: string;
+  /** Product page views */
+  views?: number;
   createdAt: string;
 }
 

@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   BarChart3,
   Crown,
+  Eye,
   Gem,
   LogOut,
   Package,
@@ -84,7 +85,14 @@ export default function AdminDashboard() {
     const top = [...unitsByProduct.values()].sort((a, b) => b.units - a.units).slice(0, 5);
     const lowStock = products.filter((p) => p.isActive && p.stock <= 3);
 
-    return { totalSales, pending, top, lowStock };
+    // Most viewed product pages
+    const mostViewed = [...products]
+      .filter((p) => (p.views ?? 0) > 0)
+      .sort((a, b) => (b.views ?? 0) - (a.views ?? 0))
+      .slice(0, 5);
+    const totalViews = products.reduce((sum, p) => sum + (p.views ?? 0), 0);
+
+    return { totalSales, pending, top, lowStock, mostViewed, totalViews };
   }, [orders, products]);
 
   const handleLogout = async () => {
@@ -220,9 +228,9 @@ export default function AdminDashboard() {
                       icon: <Package className="h-5 w-5" />,
                     },
                     {
-                      label: 'Productos activos',
-                      value: String(products.filter((p) => p.isActive).length),
-                      icon: <Gem className="h-5 w-5" />,
+                      label: 'Vistas de producto',
+                      value: String(metrics.totalViews),
+                      icon: <Eye className="h-5 w-5" />,
                     },
                   ].map((card, i) => (
                     <motion.div
@@ -245,7 +253,7 @@ export default function AdminDashboard() {
                   ))}
                 </div>
 
-                <div className="grid gap-8 lg:grid-cols-2">
+                <div className="grid gap-8 lg:grid-cols-3">
                   {/* Top bracelets */}
                   <div className="rounded-3xl border border-oro/20 bg-white/75 p-6 shadow-card sm:p-8">
                     <h2 className="flex items-center gap-2 font-serif text-xl font-bold text-royal">
@@ -272,6 +280,45 @@ export default function AdminDashboard() {
                                   animate={{ width: `${(item.units / max) * 100}%` }}
                                   transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.2 + index * 0.1 }}
                                   className="h-full rounded-full bg-gradient-to-r from-oro-light to-oro"
+                                />
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+
+                  {/* Most viewed */}
+                  <div className="rounded-3xl border border-oro/20 bg-white/75 p-6 shadow-card sm:p-8">
+                    <h2 className="flex items-center gap-2 font-serif text-xl font-bold text-royal">
+                      <Eye className="h-5 w-5 text-oro-deep" />
+                      Pulseras más vistas
+                    </h2>
+                    {metrics.mostViewed.length === 0 ? (
+                      <p className="mt-5 text-sm text-royal/55">
+                        Aún no hay vistas registradas.
+                      </p>
+                    ) : (
+                      <ul className="mt-5 space-y-3">
+                        {metrics.mostViewed.map((p, index) => {
+                          const max = metrics.mostViewed[0].views ?? 1;
+                          return (
+                            <li key={p._id}>
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="truncate pr-2 font-semibold text-royal">
+                                  {p.title}
+                                </span>
+                                <span className="shrink-0 text-royal/55">
+                                  {p.views ?? 0} vistas
+                                </span>
+                              </div>
+                              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-cielo-100">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${((p.views ?? 0) / max) * 100}%` }}
+                                  transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.2 + index * 0.1 }}
+                                  className="h-full rounded-full bg-gradient-to-r from-cielo-300 to-royal/70"
                                 />
                               </div>
                             </li>
@@ -363,14 +410,17 @@ export default function AdminDashboard() {
                                   </span>
                                 )}
                               </p>
-                              <p className="text-xs text-royal/55">
-                                {product.category} · {formatPrice(product.price)}
+                              <p className="flex flex-wrap items-center gap-x-1 text-xs text-royal/55">
+                                {formatPrice(product.price)}
                                 {(product.discount ?? 0) > 0 && (
-                                  <span className="ml-1 font-bold text-oro-deep">
+                                  <span className="font-bold text-oro-deep">
                                     (-{product.discount}%)
                                   </span>
-                                )}{' '}
-                                · {product.stock} en stock
+                                )}
+                                <span>· {product.stock} en stock ·</span>
+                                <span className="inline-flex items-center gap-1">
+                                  <Eye className="h-3 w-3" /> {product.views ?? 0} vistas
+                                </span>
                               </p>
                             </div>
                             <div className="flex gap-2">

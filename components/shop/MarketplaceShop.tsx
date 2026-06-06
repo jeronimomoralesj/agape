@@ -3,14 +3,10 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUpDown, Search, SearchX, X } from 'lucide-react';
-import type { Category, Product } from '@/lib/types';
-import { CATEGORIES } from '@/lib/types';
+import type { Product } from '@/lib/types';
 import ProductCard from './ProductCard';
 
-type Filter = 'Todos' | Category;
 type Sort = 'recientes' | 'precio-asc' | 'precio-desc' | 'nombre';
-
-const FILTERS: Filter[] = ['Todos', ...CATEGORIES];
 
 const SORT_OPTIONS: { value: Sort; label: string }[] = [
   { value: 'recientes', label: 'Más recientes' },
@@ -29,19 +25,15 @@ function normalize(text: string): string {
 
 export default function MarketplaceShop({ products }: { products: Product[] }) {
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<Filter>('Todos');
   const [sort, setSort] = useState<Sort>('recientes');
 
   const visible = useMemo(() => {
-    let list = filter === 'Todos' ? products : products.filter((p) => p.category === filter);
+    let list = products;
 
     const q = normalize(query.trim());
     if (q) {
       list = list.filter(
-        (p) =>
-          normalize(p.title).includes(q) ||
-          normalize(p.description).includes(q) ||
-          normalize(p.category).includes(q)
+        (p) => normalize(p.title).includes(q) || normalize(p.description).includes(q)
       );
     }
 
@@ -62,7 +54,7 @@ export default function MarketplaceShop({ products }: { products: Product[] }) {
         );
     }
     return sorted;
-  }, [products, query, filter, sort]);
+  }, [products, query, sort]);
 
   return (
     <section id="tienda" className="scroll-mt-24">
@@ -112,29 +104,9 @@ export default function MarketplaceShop({ products }: { products: Product[] }) {
         </div>
       </div>
 
-      {/* Category pills */}
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        {FILTERS.map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => setFilter(item)}
-            className={`relative rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] transition-colors duration-300 sm:px-5 ${
-              filter === item ? 'text-royal-ink' : 'text-royal/60 hover:text-royal'
-            }`}
-          >
-            {filter === item && (
-              <motion.span
-                layoutId="shop-filter-pill"
-                transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                className="absolute inset-0 rounded-full bg-gradient-to-r from-oro-light to-oro shadow-aura-soft"
-              />
-            )}
-            <span className="relative">{item}</span>
-          </button>
-        ))}
-
-        <span className="ml-auto text-xs text-royal/50">
+      {/* Result count */}
+      <div className="mt-4 flex justify-end">
+        <span className="text-xs text-royal/50">
           {visible.length} {visible.length === 1 ? 'pieza' : 'piezas'}
         </span>
       </div>
@@ -175,14 +147,11 @@ export default function MarketplaceShop({ products }: { products: Product[] }) {
           </span>
           <p className="font-serif text-xl text-royal">No encontramos esa pieza</p>
           <p className="max-w-sm text-sm text-royal/60">
-            Intenta con otra palabra o explora todas las colecciones.
+            Intenta con otra palabra o explora toda la colección.
           </p>
           <button
             type="button"
-            onClick={() => {
-              setQuery('');
-              setFilter('Todos');
-            }}
+            onClick={() => setQuery('')}
             className="btn-ghost !py-2.5 !text-xs"
           >
             Ver todo

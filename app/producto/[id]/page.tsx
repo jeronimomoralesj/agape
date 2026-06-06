@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import ProductGallery from '@/components/shop/ProductGallery';
 import ProductDetails from '@/components/shop/ProductDetails';
+import ViewTracker from '@/components/shop/ViewTracker';
 import { fetchProductById } from '@/lib/products';
 
 export const dynamic = 'force-dynamic';
@@ -27,6 +28,7 @@ export default async function ProductoPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-7xl px-6 pb-24 pt-10 lg:px-8">
+      <ViewTracker productId={product._id} />
       <Link
         href="/"
         className="group inline-flex items-center gap-2 text-sm font-medium text-royal/60 transition-colors hover:text-royal"

@@ -36,11 +36,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
         price: body.price,
         discount: body.discount ?? 0,
         images: Array.isArray(body.images) ? body.images.slice(0, 4) : body.images,
-        category: body.category,
         stock: body.stock,
         isActive: body.isActive,
-        spiritualMeaning: body.spiritualMeaning,
-        materials: body.materials,
       },
       { new: true, runValidators: true }
     ).lean();
