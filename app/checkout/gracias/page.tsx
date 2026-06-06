@@ -51,7 +51,7 @@ function GraciasContent() {
           “Él sana a los de corazón herido y venda sus heridas” — Salmo 147:3
         </p>
         <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
-          <Link href="/tienda" className="btn-gold">
+          <Link href="/" className="btn-gold">
             Seguir explorando
           </Link>
           <Link href="/" className="btn-ghost">

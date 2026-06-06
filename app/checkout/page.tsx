@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import SmartImage from '@/components/ui/SmartImage';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -57,7 +57,7 @@ export default function CheckoutPage() {
         <p className="max-w-sm text-royal/65">
           Agrega una pulsera a tu carrito para finalizar tu pedido.
         </p>
-        <Link href="/tienda" className="btn-gold mt-2">
+        <Link href="/" className="btn-gold mt-2">
           Ir a la tienda
         </Link>
       </div>
@@ -187,7 +187,7 @@ export default function CheckoutPage() {
             {items.map((item) => (
               <li key={item.productId} className="flex items-center gap-3">
                 <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg">
-                  <Image src={item.image} alt={item.title} fill sizes="56px" className="object-cover" />
+                  <SmartImage src={item.image} alt={item.title} fill sizes="56px" className="object-cover" />
                 </span>
                 <div className="flex-1">
                   <p className="text-sm font-semibold leading-snug text-royal">{item.title}</p>

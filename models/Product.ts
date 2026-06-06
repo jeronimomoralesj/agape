@@ -5,7 +5,17 @@ const ProductSchema = new Schema(
     title: { type: String, required: true, trim: true },
     description: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
-    images: { type: [String], default: [] },
+    /** Discount percentage (0–90). Final price = price * (1 - discount/100) */
+    discount: { type: Number, min: 0, max: 90, default: 0 },
+    /** Up to 4 images: base64 data-URLs (admin uploads) or regular URLs */
+    images: {
+      type: [String],
+      default: [],
+      validate: [
+        (arr: string[]) => arr.length <= 4,
+        'Máximo 4 imágenes por producto',
+      ],
+    },
     category: {
       type: String,
       required: true,

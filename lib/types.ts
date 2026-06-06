@@ -7,6 +7,8 @@ export interface Product {
   title: string;
   description: string;
   price: number;
+  /** Discount percentage (0–90) */
+  discount?: number;
   images: string[];
   category: Category;
   stock: number;
@@ -14,6 +16,12 @@ export interface Product {
   spiritualMeaning?: string;
   materials?: string;
   createdAt: string;
+}
+
+/** Price after applying the discount percentage. */
+export function finalPrice(product: Pick<Product, 'price' | 'discount'>): number {
+  const discount = product.discount ?? 0;
+  return discount > 0 ? Math.round(product.price * (1 - discount / 100)) : product.price;
 }
 
 export interface CartItem {

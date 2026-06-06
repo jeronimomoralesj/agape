@@ -11,7 +11,7 @@ export default function ProductoNotFound() {
         Puede que se haya agotado o retirado de la colección. Te invitamos a descubrir
         las demás pulseras.
       </p>
-      <Link href="/tienda" className="btn-gold mt-2">
+      <Link href="/" className="btn-gold mt-2">
         Volver a la tienda
       </Link>
     </div>

@@ -57,13 +57,17 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+      // Charge the discounted price when a discount is active
+      const discount = (product as { discount?: number }).discount ?? 0;
+      const unitPrice =
+        discount > 0 ? Math.round(product.price * (1 - discount / 100)) : product.price;
       orderItems.push({
         productId: product._id,
         title: product.title,
         quantity,
-        price: product.price,
+        price: unitPrice,
       });
-      total += product.price * quantity;
+      total += unitPrice * quantity;
     }
 
     const orderNumber = `AGP-${Date.now().toString(36).toUpperCase()}${Math.floor(

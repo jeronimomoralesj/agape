@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import SmartImage from '@/components/ui/SmartImage';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
                             className="flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6"
                           >
                             <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
-                              <Image
+                              <SmartImage
                                 src={product.images[0] ?? '/brand/pulseras.jpeg'}
                                 alt={product.title}
                                 fill
@@ -364,8 +364,13 @@ export default function AdminDashboard() {
                                 )}
                               </p>
                               <p className="text-xs text-royal/55">
-                                {product.category} · {formatPrice(product.price)} ·{' '}
-                                {product.stock} en stock
+                                {product.category} · {formatPrice(product.price)}
+                                {(product.discount ?? 0) > 0 && (
+                                  <span className="ml-1 font-bold text-oro-deep">
+                                    (-{product.discount}%)
+                                  </span>
+                                )}{' '}
+                                · {product.stock} en stock
                               </p>
                             </div>
                             <div className="flex gap-2">

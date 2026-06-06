@@ -31,6 +31,7 @@ const config: Config = {
       fontFamily: {
         serif: ['var(--font-playfair)', 'Georgia', 'serif'],
         sans: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
+        logo: ['var(--font-logo)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         aura: '0 0 24px 2px rgba(212, 175, 55, 0.35)',

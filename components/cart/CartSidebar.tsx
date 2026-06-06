@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import SmartImage from '@/components/ui/SmartImage';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
@@ -67,7 +67,7 @@ export default function CartSidebar() {
                   <p className="max-w-[16rem] text-sm text-royal/60">
                     Descubre nuestras pulseras inspiradas en los Misterios del Rosario.
                   </p>
-                  <Link href="/tienda" onClick={closeCart} className="btn-gold mt-2">
+                  <Link href="/" onClick={closeCart} className="btn-gold mt-2">
                     Ir a la tienda
                   </Link>
                 </motion.div>
@@ -85,7 +85,7 @@ export default function CartSidebar() {
                         className="flex gap-4 overflow-hidden rounded-2xl border border-oro/15 bg-white/70 p-3 shadow-card"
                       >
                         <span className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl">
-                          <Image
+                          <SmartImage
                             src={item.image}
                             alt={item.title}
                             fill

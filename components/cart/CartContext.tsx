@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react';
 import type { CartItem, Product } from '@/lib/types';
+import { finalPrice } from '@/lib/types';
 
 interface CartContextValue {
   items: CartItem[];
@@ -68,7 +69,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         {
           productId: product._id,
           title: product.title,
-          price: product.price,
+          price: finalPrice(product), // discounted price when a discount is active
           image: product.images[0] ?? '/brand/pulseras.jpeg',
           quantity: Math.min(quantity, product.stock),
           stock: product.stock,

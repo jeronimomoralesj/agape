@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import SmartImage from '@/components/ui/SmartImage';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -27,7 +27,7 @@ export default function ProductGallery({
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="absolute inset-0"
           >
-            <Image
+            <SmartImage
               src={gallery[active]}
               alt={`${title} — vista ${active + 1}`}
               fill
@@ -55,7 +55,7 @@ export default function ProductGallery({
                   : 'opacity-60 ring-1 ring-royal/10 hover:opacity-100'
               }`}
             >
-              <Image src={src} alt="" fill sizes="80px" className="object-cover" />
+              <SmartImage src={src} alt="" fill sizes="80px" className="object-cover" />
             </button>
           ))}
         </div>

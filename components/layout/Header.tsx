@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -9,9 +8,8 @@ import { Menu, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '@/components/cart/CartContext';
 
 const NAV_LINKS = [
-  { href: '/', label: 'Inicio' },
-  { href: '/tienda', label: 'Tienda' },
-  { href: '/#misterio-del-dia', label: 'Misterio del Día' },
+  { href: '/', label: 'Tienda' },
+  { href: '/#misterio-del-dia', label: 'Misterios' },
   { href: '/#guia-rosario', label: 'Cómo Rezar' },
 ];
 
@@ -38,28 +36,17 @@ export default function Header() {
       className={`sticky top-0 z-40 transition-all duration-500 ${
         scrolled
           ? 'bg-cielo-50/90 shadow-luxe backdrop-blur-xl'
-          : 'bg-transparent'
+          : 'bg-cielo-50/60 backdrop-blur-sm'
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 md:h-20 lg:px-8">
-        {/* Brand */}
-        <Link href="/" className="group flex items-center gap-3">
-          <span className="relative h-10 w-10 overflow-hidden rounded-full ring-1 ring-oro/50 transition-shadow duration-500 group-hover:shadow-aura md:h-11 md:w-11">
-            <Image
-              src="/brand/logo.jpeg"
-              alt="Logotipo de Ágape"
-              fill
-              sizes="44px"
-              className="scale-[2.1] object-cover object-[50%_54%]"
-            />
+        {/* Wordmark */}
+        <Link href="/" className="group flex flex-col leading-none">
+          <span className="font-logo text-2xl tracking-wide text-royal transition-colors duration-300 group-hover:text-royal-deep md:text-3xl">
+            ÁGAPE
           </span>
-          <span className="flex flex-col leading-none">
-            <span className="font-serif text-2xl font-bold tracking-wide text-royal">
-              Ágape
-            </span>
-            <span className="hidden text-[0.6rem] font-medium uppercase tracking-[0.3em] text-oro-deep sm:block">
-              Amar como Dios nos ama
-            </span>
+          <span className="hidden text-[0.55rem] font-semibold uppercase tracking-[0.32em] text-oro-deep sm:block">
+            Amar como Dios nos ama
           </span>
         </Link>
 

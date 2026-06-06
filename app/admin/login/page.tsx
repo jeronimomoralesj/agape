@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -43,16 +42,10 @@ export default function AdminLoginPage() {
         className="w-full max-w-md rounded-3xl border border-oro/20 bg-white/80 p-10 shadow-luxe backdrop-blur-sm"
       >
         <div className="flex flex-col items-center text-center">
-          <span className="relative h-16 w-16 overflow-hidden rounded-full ring-2 ring-oro/50 shadow-aura-soft">
-            <Image
-              src="/brand/logo.jpeg"
-              alt="Logotipo Ágape"
-              fill
-              sizes="64px"
-              className="scale-[2.1] object-cover object-[50%_54%]"
-            />
-          </span>
-          <h1 className="mt-5 font-serif text-3xl font-bold text-royal">Panel Ágape</h1>
+          <span className="font-logo text-5xl tracking-wide text-royal">ÁGAPE</span>
+          <h1 className="mt-3 font-serif text-xl font-bold text-royal/80">
+            Panel de administración
+          </h1>
           <p className="mt-2 text-sm text-royal/60">
             Acceso restringido. Ingresa la contraseña de administración.
           </p>

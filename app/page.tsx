@@ -1,22 +1,22 @@
-import Hero from '@/components/home/Hero';
+import BrandBanner from '@/components/home/BrandBanner';
+import MarketplaceShop from '@/components/shop/MarketplaceShop';
 import MisterioDelDia from '@/components/home/MisterioDelDia';
 import RosaryGuide from '@/components/home/RosaryGuide';
-import FeaturedProducts from '@/components/home/FeaturedProducts';
-import BrandStory from '@/components/home/BrandStory';
 import { fetchProducts } from '@/lib/products';
 
-export const revalidate = 300; // refresh featured products every 5 minutes
+export const revalidate = 120; // keep the storefront fresh
 
 export default async function HomePage() {
-  const featured = await fetchProducts(4);
+  const products = await fetchProducts();
 
   return (
     <>
-      <Hero />
+      <BrandBanner />
+      <div className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+        <MarketplaceShop products={products} />
+      </div>
       <MisterioDelDia />
-      <FeaturedProducts products={featured} />
       <RosaryGuide />
-      <BrandStory />
     </>
   );
 }

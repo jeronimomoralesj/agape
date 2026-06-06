@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
+import { Playfair_Display, Plus_Jakarta_Sans, Titan_One } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/components/cart/CartContext';
 import Header from '@/components/layout/Header';
@@ -15,6 +15,14 @@ const playfair = Playfair_Display({
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-jakarta',
+  display: 'swap',
+});
+
+// Chunky rounded display face for the "ÁGAPE" wordmark (Gliker-style)
+const titan = Titan_One({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-logo',
   display: 'swap',
 });
 
@@ -34,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${playfair.variable} ${jakarta.variable}`}>
+    <html lang="es" className={`${playfair.variable} ${jakarta.variable} ${titan.variable}`}>
       <body className="flex min-h-screen flex-col font-sans">
         <CartProvider>
           <Header />

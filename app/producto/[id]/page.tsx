@@ -28,7 +28,7 @@ export default async function ProductoPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-7xl px-6 pb-24 pt-10 lg:px-8">
       <Link
-        href="/tienda"
+        href="/"
         className="group inline-flex items-center gap-2 text-sm font-medium text-royal/60 transition-colors hover:text-royal"
       >
         <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" />

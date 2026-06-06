@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Gem, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react';
 import type { Product } from '@/lib/types';
-import { formatPrice } from '@/lib/types';
+import { finalPrice, formatPrice } from '@/lib/types';
 import { useCart } from '@/components/cart/CartContext';
 import { getMysteryByKey } from '@/lib/mysteries';
 
@@ -61,6 +61,8 @@ export default function ProductDetails({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
   const soldOut = product.stock < 1;
   const mystery = getMysteryByKey(product.category);
+  const discount = product.discount ?? 0;
+  const price = finalPrice(product);
 
   return (
     <div className="lg:sticky lg:top-28">
@@ -68,9 +70,17 @@ export default function ProductDetails({ product }: { product: Product }) {
       <h1 className="mt-3 text-balance font-serif text-4xl font-bold leading-tight text-royal sm:text-5xl">
         {product.title}
       </h1>
-      <p className="mt-5 font-serif text-3xl font-bold text-oro-deep">
-        {formatPrice(product.price)}
-      </p>
+      <div className="mt-5 flex flex-wrap items-baseline gap-3">
+        <p className="font-serif text-3xl font-bold text-oro-deep">{formatPrice(price)}</p>
+        {discount > 0 && (
+          <>
+            <p className="text-lg text-royal/40 line-through">{formatPrice(product.price)}</p>
+            <span className="rounded-full bg-oro px-3 py-1 text-xs font-bold uppercase tracking-wider text-royal-ink">
+              -{discount}%
+            </span>
+          </>
+        )}
+      </div>
       <p className="mt-5 leading-relaxed text-royal/70">{product.description}</p>
 
       {/* Quantity + Add to cart */}

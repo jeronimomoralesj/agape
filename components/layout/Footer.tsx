@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Heart, Instagram, Mail } from 'lucide-react';
 
 export default function Footer() {
@@ -13,17 +12,13 @@ export default function Footer() {
         <div className="grid gap-12 md:grid-cols-3">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-3">
-              <span className="relative h-12 w-12 overflow-hidden rounded-full ring-1 ring-oro/60">
-                <Image
-                  src="/brand/logo.jpeg"
-                  alt="Logotipo de Ágape"
-                  fill
-                  sizes="48px"
-                  className="scale-[2.1] object-cover object-[50%_54%]"
-                />
+            <div className="flex flex-col leading-none">
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-oro-light">
+                Amar como Dios nos ama
               </span>
-              <span className="font-serif text-3xl font-bold tracking-wide">Ágape</span>
+              <span className="mt-2 font-logo text-4xl tracking-wide text-cielo-100">
+                ÁGAPE
+              </span>
             </div>
             <p className="mt-5 max-w-xs font-serif text-lg italic leading-relaxed text-cielo-100/80">
               “Él sana a los de corazón herido y venda sus heridas”
@@ -39,8 +34,7 @@ export default function Footer() {
               Navegación
             </h3>
             <ul className="mt-5 space-y-3 text-sm text-cielo-100/80">
-              <li><Link href="/" className="transition-colors hover:text-oro-light">Inicio</Link></li>
-              <li><Link href="/tienda" className="transition-colors hover:text-oro-light">Tienda</Link></li>
+              <li><Link href="/" className="transition-colors hover:text-oro-light">Tienda</Link></li>
               <li><Link href="/#misterio-del-dia" className="transition-colors hover:text-oro-light">Misterio del Día</Link></li>
               <li><Link href="/#guia-rosario" className="transition-colors hover:text-oro-light">Cómo rezar el Rosario</Link></li>
             </ul>
