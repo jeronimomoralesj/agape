@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import Product from '@/models/Product';
+import { pingIndexNow } from '@/lib/indexnow';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (!product) {
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
     }
+    await pingIndexNow(['/', `/producto/${params.id}`, '/sitemap.xml']);
     return NextResponse.json(product);
   } catch (error) {
     console.error('PUT /api/products/[id]', error);
@@ -59,6 +61,7 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
     if (!product) {
       return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 });
     }
+    await pingIndexNow(['/', '/sitemap.xml']);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('DELETE /api/products/[id]', error);

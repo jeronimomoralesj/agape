@@ -5,7 +5,16 @@ import { ArrowLeft } from 'lucide-react';
 import ProductGallery from '@/components/shop/ProductGallery';
 import ProductDetails from '@/components/shop/ProductDetails';
 import ViewTracker from '@/components/shop/ViewTracker';
+import JsonLd from '@/components/seo/JsonLd';
 import { fetchProductById } from '@/lib/products';
+import {
+  SITE_URL,
+  breadcrumbJsonLd,
+  productImageUrl,
+  productJsonLd,
+  productUrl,
+} from '@/lib/seo';
+import { finalPrice } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,10 +24,35 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await fetchProductById(params.id);
-  if (!product) return { title: 'Producto no encontrado' };
+  if (!product) return { title: 'Producto no encontrado', robots: { index: false } };
+
+  const title = `${product.title} | Pulsera Católica de Cristal y Oro`;
+  const description = `${product.description.slice(0, 140)} Compra en línea con envío a toda Colombia.`;
+  const image = productImageUrl(product, 0);
+
   return {
-    title: product.title,
-    description: product.description.slice(0, 160),
+    title,
+    description,
+    alternates: { canonical: `/producto/${product._id}` },
+    openGraph: {
+      type: 'website',
+      locale: 'es_CO',
+      url: productUrl(product),
+      title,
+      description,
+      images: [{ url: image, alt: product.title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [image],
+    },
+    other: {
+      'product:price:amount': String(finalPrice(product)),
+      'product:price:currency': 'COP',
+      'product:availability': product.stock > 0 ? 'in stock' : 'out of stock',
+    },
   };
 }
 
@@ -28,6 +62,13 @@ export default async function ProductoPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-7xl px-6 pb-24 pt-10 lg:px-8">
+      <JsonLd data={productJsonLd(product)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Tienda', url: SITE_URL },
+          { name: product.title, url: productUrl(product) },
+        ])}
+      />
       <ViewTracker productId={product._id} />
       <Link
         href="/"

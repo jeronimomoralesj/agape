@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import BlogPost from '@/models/BlogPost';
+import { pingIndexNow } from '@/lib/indexnow';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +42,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (!post) {
       return NextResponse.json({ error: 'Entrada no encontrada' }, { status: 404 });
     }
+    await pingIndexNow(['/blog', `/blog/${params.id}`, '/sitemap.xml']);
     return NextResponse.json(post);
   } catch (error) {
     console.error('PUT /api/blog/[id]', error);
@@ -56,6 +58,7 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
     if (!post) {
       return NextResponse.json({ error: 'Entrada no encontrada' }, { status: 404 });
     }
+    await pingIndexNow(['/blog', '/sitemap.xml']);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('DELETE /api/blog/[id]', error);

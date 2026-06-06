@@ -6,9 +6,10 @@ import { Reveal, StaggerGroup, StaggerItem } from '@/components/motion/Reveal';
 import { excerpt, fetchPublishedPosts, formatPostDate } from '@/lib/blog';
 
 export const metadata: Metadata = {
-  title: 'Blog',
+  title: 'Blog — Reflexiones de fe y oración',
   description:
-    'Reflexiones, oración y fe — el blog de Ágape. Amar como Dios nos ama.',
+    'Reflexiones, oración y fe — el blog de Ágape. Aprende a rezar el rosario y descubre el significado de nuestras pulseras católicas.',
+  alternates: { canonical: '/blog' },
 };
 
 export const dynamic = 'force-dynamic';

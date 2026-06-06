@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import BlogPost from '@/models/BlogPost';
 import { ADMIN_COOKIE, verifySessionToken } from '@/lib/adminAuth';
+import { pingIndexNow } from '@/lib/indexnow';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,9 @@ export async function POST(request: NextRequest) {
       image: body.image ?? '',
       isPublished: body.isPublished ?? true,
     });
+    if (post.isPublished) {
+      await pingIndexNow(['/blog', `/blog/${post._id}`, '/sitemap.xml']);
+    }
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
     console.error('POST /api/blog', error);

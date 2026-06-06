@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import SmartImage from '@/components/ui/SmartImage';
+import JsonLd from '@/components/seo/JsonLd';
 import { excerpt, fetchPostById, formatPostDate } from '@/lib/blog';
+import { SITE_URL, articleJsonLd, breadcrumbJsonLd, postImageUrl } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +15,28 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await fetchPostById(params.id);
-  if (!post) return { title: 'Entrada no encontrada' };
-  return { title: post.title, description: excerpt(post.content) };
+  if (!post) return { title: 'Entrada no encontrada', robots: { index: false } };
+  const image = postImageUrl(post);
+  return {
+    title: post.title,
+    description: excerpt(post.content),
+    alternates: { canonical: `/blog/${post._id}` },
+    openGraph: {
+      type: 'article',
+      locale: 'es_CO',
+      url: `${SITE_URL}/blog/${post._id}`,
+      title: post.title,
+      description: excerpt(post.content),
+      publishedTime: post.createdAt,
+      ...(image ? { images: [{ url: image, alt: post.title }] } : {}),
+    },
+    twitter: {
+      card: image ? 'summary_large_image' : 'summary',
+      title: post.title,
+      description: excerpt(post.content),
+      ...(image ? { images: [image] } : {}),
+    },
+  };
 }
 
 export default async function BlogPostPage({ params }: Props) {
@@ -23,6 +45,14 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <article className="mx-auto max-w-3xl px-4 pb-24 pt-10 sm:px-6">
+      <JsonLd data={articleJsonLd(post)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Tienda', url: SITE_URL },
+          { name: 'Blog', url: `${SITE_URL}/blog` },
+          { name: post.title, url: `${SITE_URL}/blog/${post._id}` },
+        ])}
+      />
       <Link
         href="/blog"
         className="group inline-flex items-center gap-2 text-sm font-medium text-royal/60 transition-colors hover:text-royal"

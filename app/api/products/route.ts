@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { dbConnect } from '@/lib/db';
 import Product from '@/models/Product';
+import { pingIndexNow } from '@/lib/indexnow';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
       stock: body.stock ?? 0,
       isActive: body.isActive ?? true,
     });
+    await pingIndexNow(['/', `/producto/${product._id}`, '/sitemap.xml']);
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
     console.error('POST /api/products', error);
