@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import ProductGallery from '@/components/shop/ProductGallery';
 import ProductDetails from '@/components/shop/ProductDetails';
+import ProductComments from '@/components/shop/ProductComments';
 import ViewTracker from '@/components/shop/ViewTracker';
 import JsonLd from '@/components/seo/JsonLd';
 import { fetchProductById } from '@/lib/products';
@@ -82,6 +83,8 @@ export default async function ProductoPage({ params }: Props) {
         <ProductGallery images={product.images} title={product.title} />
         <ProductDetails product={product} />
       </div>
+
+      <ProductComments productId={product._id} />
     </div>
   );
 }

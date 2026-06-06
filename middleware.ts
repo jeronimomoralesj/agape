@@ -7,7 +7,8 @@ export async function middleware(request: NextRequest) {
   // Guard the admin area (the login page itself stays public)
   const isAdminPage = pathname.startsWith('/admin') && pathname !== '/admin/login';
   const isPublicViewPing =
-    request.method === 'POST' && /^\/api\/products\/[^/]+\/view$/.test(pathname);
+    request.method === 'POST' &&
+    /^\/api\/products\/[^/]+\/(view|comments)$/.test(pathname);
   const isProtectedApi =
     !isPublicViewPing &&
     ((pathname.startsWith('/api/products') && request.method !== 'GET') ||
