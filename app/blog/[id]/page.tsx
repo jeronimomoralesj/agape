@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: excerpt(post.content),
       publishedTime: post.createdAt,
-      ...(image ? { images: [{ url: image, alt: post.title }] } : {}),
+      // og:image comes from app/blog/[id]/opengraph-image.tsx
     },
     twitter: {
       card: image ? 'summary_large_image' : 'summary',

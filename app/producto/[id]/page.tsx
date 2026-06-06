@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: productUrl(product),
       title,
       description,
-      images: [{ url: image, alt: product.title }],
+      // og:image comes from app/producto/[id]/opengraph-image.tsx
     },
     twitter: {
       card: 'summary_large_image',

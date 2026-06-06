@@ -35,6 +35,9 @@ export default function RosaryGuide() {
   const [beads, setBeads] = useState<Bead[]>([]);
   const [markers, setMarkers] = useState<Record<number, { x: number; y: number }>>({});
   const [activeStep, setActiveStep] = useState(1);
+  // Measured path lengths drive a dash-offset draw animation —
+  // more reliable on mobile Safari than framer's pathLength trick.
+  const [lengths, setLengths] = useState<{ loop: number; tail: number } | null>(null);
 
   // Lay out beads along the real path geometry after mount
   useEffect(() => {
@@ -69,6 +72,7 @@ export default function RosaryGuide() {
     markerPositions[7] = { x: 200, y: 368 }; // medal
     markerPositions[1] = { x: 200, y: 468 }; // cross
     setMarkers(markerPositions);
+    setLengths({ loop: loopLength, tail: tailLength });
   }, []);
 
   return (
@@ -141,31 +145,41 @@ export default function RosaryGuide() {
             role="img"
             aria-label="Diagrama interactivo del Santo Rosario"
           >
-            {/* The thread — draws itself on scroll */}
-            <motion.path
-              ref={loopRef}
-              d={LOOP_PATH}
-              fill="none"
-              stroke="#D4AF37"
-              strokeWidth="1.5"
-              strokeOpacity="0.6"
-              initial={{ pathLength: 0 }}
-              whileInView={{ pathLength: 1 }}
-              viewport={{ once: true, margin: '-100px' }}
-              transition={{ duration: 2.4, ease: 'easeInOut' }}
-            />
-            <motion.path
-              ref={tailRef}
-              d={TAIL_PATH}
-              fill="none"
-              stroke="#D4AF37"
-              strokeWidth="1.5"
-              strokeOpacity="0.6"
-              initial={{ pathLength: 0 }}
-              whileInView={{ pathLength: 1 }}
-              viewport={{ once: true, margin: '-100px' }}
-              transition={{ duration: 0.8, ease: 'easeInOut', delay: 2.2 }}
-            />
+            {/* Invisible paths used only to measure geometry on mount */}
+            <path ref={loopRef} d={LOOP_PATH} fill="none" stroke="none" />
+            <path ref={tailRef} d={TAIL_PATH} fill="none" stroke="none" />
+
+            {/* The thread — draws itself on scroll (dash-offset technique) */}
+            {lengths && (
+              <>
+                <motion.path
+                  d={LOOP_PATH}
+                  fill="none"
+                  stroke="#D4AF37"
+                  strokeWidth="2.5"
+                  strokeOpacity="0.7"
+                  strokeLinecap="round"
+                  strokeDasharray={lengths.loop}
+                  initial={{ strokeDashoffset: lengths.loop }}
+                  whileInView={{ strokeDashoffset: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 2.2, ease: 'easeInOut' }}
+                />
+                <motion.path
+                  d={TAIL_PATH}
+                  fill="none"
+                  stroke="#D4AF37"
+                  strokeWidth="2.5"
+                  strokeOpacity="0.7"
+                  strokeLinecap="round"
+                  strokeDasharray={lengths.tail}
+                  initial={{ strokeDashoffset: lengths.tail }}
+                  whileInView={{ strokeDashoffset: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.8, ease: 'easeInOut', delay: 2.0 }}
+                />
+              </>
+            )}
 
             {/* Beads */}
             {beads.map((bead, index) => (
@@ -173,7 +187,7 @@ export default function RosaryGuide() {
                 key={index}
                 cx={bead.x}
                 cy={bead.y}
-                r={bead.large ? 6 : 3.5}
+                r={bead.large ? 6.5 : 4}
                 fill={bead.large ? '#D4AF37' : '#E0F2FE'}
                 fillOpacity={bead.large ? 0.95 : 0.8}
                 initial={{ opacity: 0, scale: 0 }}
@@ -219,6 +233,8 @@ export default function RosaryGuide() {
                   onClick={() => setActiveStep(stepNumber)}
                   className="cursor-pointer"
                 >
+                  {/* generous invisible hit area for touch */}
+                  <circle cx={pos.x} cy={pos.y} r={26} fill="transparent" />
                   {isActive && (
                     <motion.circle
                       cx={pos.x}
@@ -235,7 +251,7 @@ export default function RosaryGuide() {
                   <motion.circle
                     cx={pos.x}
                     cy={pos.y}
-                    r={13}
+                    r={14}
                     fill={isActive ? '#D4AF37' : '#16306F'}
                     stroke="#D4AF37"
                     strokeWidth="1.5"
@@ -244,9 +260,9 @@ export default function RosaryGuide() {
                   />
                   <text
                     x={pos.x}
-                    y={pos.y + 4.5}
+                    y={pos.y + 5}
                     textAnchor="middle"
-                    fontSize="13"
+                    fontSize="14"
                     fontWeight="700"
                     fill={isActive ? '#091740' : '#E8CD6F'}
                     style={{ pointerEvents: 'none' }}

@@ -55,14 +55,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} — Pulseras Católicas de Cristal y Oro | Colombia`,
     description: DEFAULT_DESCRIPTION,
-    images: [
-      {
-        url: '/brand/pulseras.jpeg',
-        width: 1200,
-        height: 900,
-        alt: 'Pulseras Ágape de cristal y oro con cruz',
-      },
-    ],
+    // og:image comes from app/opengraph-image.tsx (branded generated card)
   },
   twitter: {
     card: 'summary_large_image',
