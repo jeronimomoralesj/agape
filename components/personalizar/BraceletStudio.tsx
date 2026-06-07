@@ -336,21 +336,29 @@ export default function BraceletStudio() {
     window.setTimeout(() => setAdded(false), 2000);
   };
 
-  const beadSummary = beads.map((b) => b.name).join(' + ');
-
   return (
     <div className="grid gap-6 lg:grid-cols-2 lg:gap-16">
       {/* ── Live preview (pinned on mobile, sticky column on desktop) ── */}
-      <div className="sticky top-14 z-20 self-start sm:top-16 lg:top-24">
+      <div className="sticky top-14 z-20 min-w-0 self-start sm:top-16 lg:top-24">
         <div className="rounded-3xl border border-oro/20 bg-gradient-to-b from-white/90 to-cielo-100/80 p-3 shadow-luxe backdrop-blur-md sm:rounded-[2rem] sm:p-8">
           <div className="mx-auto max-w-[180px] sm:max-w-[300px] lg:max-w-sm">
             <BraceletCanvas beads={beads} cordHex={cord.hex} />
           </div>
           <div className="mt-2 text-center sm:mt-4">
-            <p className="truncate px-2 font-serif text-xs font-semibold text-royal sm:text-base">
-              {beadSummary}
-            </p>
-            <p className="truncate px-2 text-[0.65rem] text-royal/55 sm:text-xs">
+            {/* selected pepas as dots — never overflows, no matter how many */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 px-2">
+              {beads.map((b) => (
+                <span
+                  key={b.id}
+                  title={b.name}
+                  className="h-3 w-3 rounded-full ring-1 ring-royal/15 sm:h-3.5 sm:w-3.5"
+                  style={{
+                    background: `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.7), rgba(255,255,255,0.08) 45%, rgba(0,0,0,0.12)), ${b.hex}`,
+                  }}
+                />
+              ))}
+            </div>
+            <p className="mt-1.5 truncate px-2 text-[0.65rem] text-royal/55 sm:text-xs">
               Cordón {cord.name} · Virgen Milagrosa
             </p>
           </div>
@@ -358,7 +366,7 @@ export default function BraceletStudio() {
       </div>
 
       {/* ── Controls ── */}
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4">
         {/* Step 1 — Cord */}
         <Step
           number={1}
@@ -410,7 +418,7 @@ export default function BraceletStudio() {
         <Step
           number={2}
           title="Pepas"
-          summary={`${beadSummary} (${beads.length}/${MAX_BEAD_COLORS})`}
+          summary={`${beads.length} ${beads.length === 1 ? 'color elegido' : 'colores elegidos'} de ${MAX_BEAD_COLORS}`}
           open={openStep === 2}
           onToggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
         >
