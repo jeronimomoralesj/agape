@@ -34,6 +34,7 @@ export default function CheckoutPage() {
           items: items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
+            ...(item.custom ? { custom: item.custom } : {}),
           })),
         }),
       });

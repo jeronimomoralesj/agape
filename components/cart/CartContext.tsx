@@ -11,6 +11,15 @@ import {
 } from 'react';
 import type { CartItem, Product } from '@/lib/types';
 import { finalPrice } from '@/lib/types';
+import {
+  CUSTOM_PRICE,
+  customCartImage,
+  customProductId,
+  customTitle,
+  findBead,
+  findCord,
+  type CustomConfig,
+} from '@/lib/customBracelet';
 
 interface CartContextValue {
   items: CartItem[];
@@ -20,6 +29,7 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   addItem: (product: Product, quantity?: number) => void;
+  addCustomItem: (config: CustomConfig) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -80,6 +90,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsOpen(true);
   }, []);
 
+  const addCustomItem = useCallback((config: CustomConfig) => {
+    const productId = customProductId(config);
+    setItems((prev) => {
+      const existing = prev.find((item) => item.productId === productId);
+      if (existing) {
+        return prev.map((item) =>
+          item.productId === productId
+            ? { ...item, quantity: Math.min(item.quantity + 1, 10) }
+            : item
+        );
+      }
+      return [
+        ...prev,
+        {
+          productId,
+          title: customTitle(config),
+          price: CUSTOM_PRICE,
+          image: customCartImage(
+            findBead(config.beadId)?.hex ?? '#EBD4BE',
+            findCord(config.cordId)?.hex ?? '#E3D5BC'
+          ),
+          quantity: 1,
+          stock: 10, // handmade to order — cap per pedido
+          custom: config,
+        },
+      ];
+    });
+    setPulse((p) => p + 1);
+    setIsOpen(true);
+  }, []);
+
   const removeItem = useCallback((productId: string) => {
     setItems((prev) => prev.filter((item) => item.productId !== productId));
   }, []);
@@ -110,13 +151,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       openCart,
       closeCart,
       addItem,
+      addCustomItem,
       removeItem,
       updateQuantity,
       clearCart,
       totalItems,
       totalPrice,
     };
-  }, [items, isOpen, pulse, openCart, closeCart, addItem, removeItem, updateQuantity, clearCart]);
+  }, [items, isOpen, pulse, openCart, closeCart, addItem, addCustomItem, removeItem, updateQuantity, clearCart]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

@@ -11,7 +11,8 @@ const OrderSchema = new Schema(
     },
     items: [
       {
-        productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+        // Product ObjectId as string, or "custom-…" for personalized bracelets
+        productId: { type: String, required: true },
         title: { type: String },
         quantity: { type: Number, required: true, min: 1 },
         price: { type: Number, required: true, min: 0 },

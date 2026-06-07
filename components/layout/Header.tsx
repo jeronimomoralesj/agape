@@ -9,6 +9,7 @@ import { useCart } from '@/components/cart/CartContext';
 
 const BASE_LINKS = [
   { href: '/', label: 'Tienda' },
+  { href: '/personalizar', label: 'Crea la Tuya' },
   { href: '/mision', label: 'Misión' },
   { href: '/#misterio-del-dia', label: 'Misterios' },
   { href: '/#guia-rosario', label: 'Cómo Rezar' },
@@ -66,7 +67,7 @@ export default function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-5 md:flex lg:gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.href}

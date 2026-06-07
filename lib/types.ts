@@ -29,6 +29,12 @@ export interface CartItem {
   image: string;
   quantity: number;
   stock: number;
+  /** Present for "Crea tu pulsera" custom configurations */
+  custom?: {
+    beadId: string;
+    cordId: string;
+    charmId: string;
+  };
 }
 
 export interface BlogPost {
