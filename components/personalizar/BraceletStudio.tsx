@@ -2,23 +2,23 @@
 
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check, ChevronDown, Gem, Link2, ShoppingBag, Sparkles, Wand2 } from 'lucide-react';
+import { Check, ChevronDown, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/components/cart/CartContext';
 import { formatPrice } from '@/lib/types';
 import {
   BEADS,
-  CHARMS,
   CORDS,
   CUSTOM_PRICE,
   GOLD,
   GOLD_DEEP,
   GOLD_LIGHT,
+  MAX_BEAD_COLORS,
   type BeadOption,
 } from '@/lib/customBracelet';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// ───────────────────────── Geometry (matches IMG_6410 anatomy) ─────────────────────────
+// ───────────────────────── Geometry (matches the physical bracelet) ─────────────────────────
 
 const CX = 200;
 const CY = 235;
@@ -34,35 +34,38 @@ interface Piece {
   kind: PieceKind;
   x: number;
   y: number;
+  /** running index among the small crystals only (drives color alternation) */
+  smallIndex: number;
 }
 
 const PIECE_WEIGHT: Record<PieceKind, number> = { small: 1, ring: 0.52, large: 1.35 };
-// Per side, cord → medal: 5 crystals, [gold ring, separator, gold ring], 5 crystals
+// Per side, cord → medal: 5 pepas, [gold ring, separator, gold ring], 5 pepas
 const SIDE_PATTERN: PieceKind[] = [
   'small', 'small', 'small', 'small', 'small',
   'ring', 'large', 'ring',
   'small', 'small', 'small', 'small', 'small',
 ];
 
-function layoutSide(startDeg: number, endDeg: number): Piece[] {
+function layoutSide(startDeg: number, endDeg: number, smallOffset: number): Piece[] {
   const total = SIDE_PATTERN.reduce((sum, kind) => sum + PIECE_WEIGHT[kind], 0);
   const pieces: Piece[] = [];
   let cursor = 0;
+  let smallIndex = smallOffset;
   for (const kind of SIDE_PATTERN) {
     const w = PIECE_WEIGHT[kind];
     const t = (cursor + w / 2) / total;
     const deg = startDeg + (endDeg - startDeg) * t;
     const { x, y } = pt(deg);
-    pieces.push({ kind, x, y });
+    pieces.push({ kind, x, y, smallIndex: kind === 'small' ? smallIndex++ : -1 });
     cursor += w;
   }
   return pieces;
 }
 
-// Right side: cord end (297°) sweeping clockwise to the medal (82°+360)
 // Left side: cord end (243°) sweeping counterclockwise to the medal (98°)
-const RIGHT_SIDE = layoutSide(297, 442);
-const LEFT_SIDE = layoutSide(243, 98);
+// Right side: cord end (297°) sweeping clockwise to the medal (82°+360)
+const LEFT_SIDE = layoutSide(243, 98, 0);
+const RIGHT_SIDE = layoutSide(297, 442, 10);
 const ALL_PIECES = [...LEFT_SIDE, ...RIGHT_SIDE];
 
 const CORD_END_L = pt(243);
@@ -73,11 +76,11 @@ const CORD_END_R = pt(297);
 function BeadCircle({
   piece,
   index,
-  bead,
+  beads,
 }: {
   piece: Piece;
   index: number;
-  bead: BeadOption;
+  beads: BeadOption[];
 }) {
   if (piece.kind === 'ring') {
     return (
@@ -97,9 +100,10 @@ function BeadCircle({
 
   const isLarge = piece.kind === 'large';
   const r = isLarge ? 11 : 8;
+  const bead = isLarge ? null : beads[piece.smallIndex % beads.length];
   // Separators are smooth alabaster pieces, like the reference photo
-  const fill = isLarge ? '#ECE2D0' : bead.hex;
-  const rim = isLarge || bead.light ? 'rgba(150,130,95,0.45)' : 'rgba(0,0,0,0.28)';
+  const fill = isLarge ? '#ECE2D0' : bead!.hex;
+  const rim = isLarge || bead?.light ? 'rgba(150,130,95,0.45)' : 'rgba(0,0,0,0.28)';
 
   return (
     <motion.g
@@ -108,7 +112,6 @@ function BeadCircle({
       transition={{ duration: 0.35, delay: index * 0.022 }}
     >
       <circle cx={piece.x} cy={piece.y} r={r} fill={fill} stroke={rim} strokeWidth={0.8} />
-      {/* facet highlight */}
       <circle cx={piece.x} cy={piece.y} r={r} fill="url(#facetHighlight)" />
       {!isLarge && (
         <circle
@@ -122,41 +125,10 @@ function BeadCircle({
   );
 }
 
-// ───────────────────────── Charms ─────────────────────────
+// ───────────────────────── Virgen Milagrosa charm (fixed) ─────────────────────────
 
-function Charm({ charmId }: { charmId: string }) {
-  const my = 374; // medal center y
-  if (charmId === 'benito') {
-    return (
-      <g>
-        <circle cx={CX} cy={my} r={14} fill="url(#goldGradient)" stroke={GOLD_DEEP} strokeWidth={1} />
-        <circle cx={CX} cy={my} r={9} fill="none" stroke={GOLD_DEEP} strokeWidth={1} opacity={0.7} />
-        <rect x={CX - 1.4} y={my - 7} width={2.8} height={14} rx={1} fill={GOLD_DEEP} />
-        <rect x={CX - 7} y={my - 1.4} width={14} height={2.8} rx={1} fill={GOLD_DEEP} />
-      </g>
-    );
-  }
-  if (charmId === 'corazon') {
-    return (
-      <g>
-        <path
-          d={`M${CX},${my - 6} c-3.5,-8 -15,-7 -15,2 c0,8 10,11 15,18 c5,-7 15,-10 15,-18 c0,-9 -11.5,-10 -15,-2 Z`}
-          fill="url(#goldGradient)"
-          stroke={GOLD_DEEP}
-          strokeWidth={1}
-        />
-        <path
-          d={`M${CX - 2},${my + 2} q2,-4 6,-5`}
-          fill="none"
-          stroke="#FFF6DC"
-          strokeWidth={1.4}
-          strokeLinecap="round"
-          opacity={0.8}
-        />
-      </g>
-    );
-  }
-  // Virgen Milagrosa — oval medal with halo rays
+function VirgenCharm() {
+  const my = 374;
   return (
     <g>
       {[-50, -25, 0, 25, 50].map((deg) => {
@@ -188,31 +160,17 @@ function Charm({ charmId }: { charmId: string }) {
 
 // ───────────────────────── Live preview canvas ─────────────────────────
 
-function BraceletCanvas({
-  bead,
-  cordHex,
-  charmId,
-  canvasKey,
-}: {
-  bead: BeadOption;
-  cordHex: string;
-  charmId: string;
-  canvasKey: number;
-}) {
+function BraceletCanvas({ beads, cordHex }: { beads: BeadOption[]; cordHex: string }) {
   return (
     <div className="group relative">
       {/* hover shimmer sweep (simulates facet reflections) */}
       <div className="pointer-events-none absolute inset-0 z-10 rounded-[2rem] bg-gold-sheen bg-[length:250%_100%] opacity-0 mix-blend-soft-light transition-opacity duration-500 group-hover:animate-shimmer group-hover:opacity-100" />
 
-      <motion.svg
-        key={canvasKey} // re-mount on "Destello" → replay staggered assembly
+      <svg
         viewBox="0 0 400 470"
         className="h-auto w-full drop-shadow-[0_18px_40px_rgba(30,58,138,0.18)]"
         role="img"
         aria-label="Vista previa de tu pulsera personalizada"
-        initial={{ opacity: 0, rotate: -2 }}
-        animate={{ opacity: 1, rotate: 0 }}
-        transition={{ duration: 0.6, ease: EASE }}
       >
         <defs>
           <radialGradient id="facetHighlight" cx="32%" cy="28%" r="72%">
@@ -228,23 +186,17 @@ function BraceletCanvas({
         </defs>
 
         {/* Connecting thread around the loop */}
-        <motion.path
+        <path
           d={`M ${CORD_END_L.x} ${CORD_END_L.y} A ${R} ${R} 0 1 0 ${CORD_END_R.x} ${CORD_END_R.y}`}
           fill="none"
           stroke={cordHex}
           strokeWidth={2.2}
           strokeLinecap="round"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.95 }}
-          transition={{ duration: 0.5 }}
+          opacity={0.95}
         />
 
         {/* Adjustable dual-strand cord with sliding knot */}
-        <motion.g
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15, ease: EASE }}
-        >
+        <g>
           <path
             d={`M ${CORD_END_L.x} ${CORD_END_L.y} C 152 82, 172 62, 206 55 S 242 48, 252 44`}
             fill="none"
@@ -259,41 +211,32 @@ function BraceletCanvas({
             strokeWidth={3.4}
             strokeLinecap="round"
           />
-          {/* sliding knot */}
           <rect x={190} y={47} width={20} height={15} rx={6} fill={cordHex} stroke="rgba(0,0,0,0.18)" strokeWidth={0.8} />
           <line x1={195} y1={49} x2={195} y2={61} stroke="rgba(0,0,0,0.15)" strokeWidth={1.2} />
           <line x1={200} y1={48} x2={200} y2={62} stroke="rgba(0,0,0,0.15)" strokeWidth={1.2} />
           <line x1={205} y1={49} x2={205} y2={61} stroke="rgba(0,0,0,0.15)" strokeWidth={1.2} />
-          {/* cord tails */}
           <circle cx={254} cy={43} r={3.2} fill={cordHex} />
           <circle cx={146} cy={43} r={3.2} fill={cordHex} />
-        </motion.g>
+        </g>
 
-        {/* Crystals, separators and gold rings */}
-        <g key={`${bead.id}`}>
+        {/* Pepas, separators and gold rings — re-staggers when colors change */}
+        <g key={beads.map((b) => b.id).join('-')}>
           {ALL_PIECES.map((piece, index) => (
-            <BeadCircle key={index} piece={piece} index={index} bead={bead} />
+            <BeadCircle key={index} piece={piece} index={index} beads={beads} />
           ))}
         </g>
 
-        {/* Focal charm + dangling crucifix */}
-        <motion.g
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5, ease: EASE }}
-        >
-          {/* connection to the loop */}
+        {/* Virgen Milagrosa + dangling crucifix */}
+        <g>
           <circle cx={CX} cy={362} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
-          <Charm charmId={charmId} />
-          {/* chain to crucifix */}
+          <VirgenCharm />
           <circle cx={CX} cy={394} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
           <circle cx={CX} cy={400} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
-          {/* crucifix */}
           <rect x={CX - 3.5} y={404} width={7} height={48} rx={2.4} fill="url(#goldGradient)" stroke={GOLD_DEEP} strokeWidth={0.6} />
           <rect x={CX - 16} y={416} width={32} height={7} rx={2.4} fill="url(#goldGradient)" stroke={GOLD_DEEP} strokeWidth={0.6} />
           <circle cx={CX} cy={419.5} r={3.6} fill={GOLD_DEEP} />
-        </motion.g>
-      </motion.svg>
+        </g>
+      </svg>
     </div>
   );
 }
@@ -325,7 +268,7 @@ function Step({
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="flex w-full items-center gap-4 px-5 py-4 text-left sm:px-6 sm:py-5"
+        className="flex w-full items-center gap-3 px-4 py-4 text-left sm:gap-4 sm:px-6 sm:py-5"
       >
         <span
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-serif text-base font-bold transition-colors duration-300 ${
@@ -335,7 +278,9 @@ function Step({
           {number}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-serif text-lg font-semibold text-royal">{title}</span>
+          <span className="block font-serif text-base font-semibold text-royal sm:text-lg">
+            {title}
+          </span>
           <span className="block truncate text-xs text-royal/55">{summary}</span>
         </span>
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.3 }}>
@@ -351,7 +296,7 @@ function Step({
             transition={{ duration: 0.45, ease: EASE }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-6 sm:px-6">{children}</div>
+            <div className="px-4 pb-6 sm:px-6">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -363,54 +308,51 @@ function Step({
 
 export default function BraceletStudio() {
   const { addCustomItem } = useCart();
-  const [beadId, setBeadId] = useState('champana');
+  const [beadIds, setBeadIds] = useState<string[]>(['champana']);
   const [cordId, setCordId] = useState('crema');
-  const [charmId, setCharmId] = useState('milagrosa');
   const [openStep, setOpenStep] = useState(1);
-  const [canvasKey, setCanvasKey] = useState(0);
   const [added, setAdded] = useState(false);
 
-  const bead = useMemo(() => BEADS.find((b) => b.id === beadId) ?? BEADS[9], [beadId]);
+  const beads = useMemo(
+    () => beadIds.map((id) => BEADS.find((b) => b.id === id)).filter(Boolean) as BeadOption[],
+    [beadIds]
+  );
   const cord = useMemo(() => CORDS.find((c) => c.id === cordId) ?? CORDS[0], [cordId]);
-  const charm = useMemo(() => CHARMS.find((c) => c.id === charmId) ?? CHARMS[0], [charmId]);
+
+  const toggleBead = (id: string) => {
+    setBeadIds((prev) => {
+      if (prev.includes(id)) {
+        // always keep at least one pepa selected
+        return prev.length > 1 ? prev.filter((b) => b !== id) : prev;
+      }
+      if (prev.length >= MAX_BEAD_COLORS) return prev;
+      return [...prev, id];
+    });
+  };
 
   const handleAdd = () => {
-    addCustomItem({ beadId, cordId, charmId });
+    addCustomItem({ beadIds, cordId });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2000);
   };
 
-  return (
-    <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
-      {/* ── Live preview (sticky) ── */}
-      <div className="sticky top-16 z-20 self-start lg:top-24">
-        <div className="rounded-[2rem] border border-oro/20 bg-gradient-to-b from-white/85 to-cielo-100/70 p-4 shadow-luxe backdrop-blur-md sm:p-8">
-          <div className="mx-auto max-w-[270px] sm:max-w-sm">
-            <BraceletCanvas
-              bead={bead}
-              cordHex={cord.hex}
-              charmId={charmId}
-              canvasKey={canvasKey}
-            />
-          </div>
+  const beadSummary = beads.map((b) => b.name).join(' + ');
 
-          <div className="mt-3 flex items-center justify-between gap-3 sm:mt-5">
-            <div className="min-w-0">
-              <p className="truncate font-serif text-sm font-semibold text-royal sm:text-base">
-                {bead.name}
-              </p>
-              <p className="truncate text-[0.7rem] text-royal/55 sm:text-xs">
-                Cordón {cord.name} · {charm.name}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setCanvasKey((k) => k + 1)}
-              className="flex shrink-0 items-center gap-1.5 rounded-full border border-oro/50 px-3.5 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-oro-deep transition-all duration-300 hover:bg-oro/10 hover:shadow-aura-soft"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Destello
-            </button>
+  return (
+    <div className="grid gap-6 lg:grid-cols-2 lg:gap-16">
+      {/* ── Live preview (pinned on mobile, sticky column on desktop) ── */}
+      <div className="sticky top-14 z-20 self-start sm:top-16 lg:top-24">
+        <div className="rounded-3xl border border-oro/20 bg-gradient-to-b from-white/90 to-cielo-100/80 p-3 shadow-luxe backdrop-blur-md sm:rounded-[2rem] sm:p-8">
+          <div className="mx-auto max-w-[180px] sm:max-w-[300px] lg:max-w-sm">
+            <BraceletCanvas beads={beads} cordHex={cord.hex} />
+          </div>
+          <div className="mt-2 text-center sm:mt-4">
+            <p className="truncate px-2 font-serif text-xs font-semibold text-royal sm:text-base">
+              {beadSummary}
+            </p>
+            <p className="truncate px-2 text-[0.65rem] text-royal/55 sm:text-xs">
+              Cordón {cord.name} · Virgen Milagrosa
+            </p>
           </div>
         </div>
       </div>
@@ -425,7 +367,7 @@ export default function BraceletStudio() {
           open={openStep === 1}
           onToggle={() => setOpenStep(openStep === 1 ? 0 : 1)}
         >
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 sm:gap-5">
             {CORDS.map((option) => {
               const selected = cordId === option.id;
               return (
@@ -464,33 +406,34 @@ export default function BraceletStudio() {
           </div>
         </Step>
 
-        {/* Step 2 — Crystal */}
+        {/* Step 2 — Pepas (multi-select) */}
         <Step
           number={2}
-          title="Cristal principal"
-          summary={bead.name}
+          title="Pepas"
+          summary={`${beadSummary} (${beads.length}/${MAX_BEAD_COLORS})`}
           open={openStep === 2}
           onToggle={() => setOpenStep(openStep === 2 ? 0 : 2)}
         >
+          <p className="mb-4 text-xs text-royal/55">
+            Elige hasta {MAX_BEAD_COLORS} colores — se alternan a lo largo de la pulsera.
+          </p>
           <div className="grid grid-cols-3 gap-x-2 gap-y-5 sm:grid-cols-4">
             {BEADS.map((option) => {
-              const selected = beadId === option.id;
+              const selectedIndex = beadIds.indexOf(option.id);
+              const selected = selectedIndex !== -1;
               return (
                 <button
                   key={option.id}
                   type="button"
-                  onClick={() => {
-                    setBeadId(option.id);
-                    setOpenStep(3);
-                  }}
+                  onClick={() => toggleBead(option.id)}
                   aria-pressed={selected}
                   className="group flex flex-col items-center gap-1.5"
                 >
                   <span
                     className={`relative h-12 w-12 rounded-full transition-all duration-300 ${
                       selected
-                        ? 'ring-2 ring-oro ring-offset-2 ring-offset-white shadow-aura-soft scale-110'
-                        : 'ring-1 ring-royal/10 group-hover:ring-oro/50 group-hover:scale-105'
+                        ? 'scale-110 ring-2 ring-oro ring-offset-2 ring-offset-white shadow-aura-soft'
+                        : 'ring-1 ring-royal/10 group-hover:scale-105 group-hover:ring-oro/50'
                     }`}
                     style={{
                       background: `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.7), rgba(255,255,255,0.08) 45%, rgba(0,0,0,0.12)), ${option.hex}`,
@@ -500,9 +443,9 @@ export default function BraceletStudio() {
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-oro shadow-aura-soft"
+                        className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-oro text-[0.6rem] font-black text-royal-ink shadow-aura-soft"
                       >
-                        <Check className="h-3 w-3 text-royal-ink" strokeWidth={3.5} />
+                        {selectedIndex + 1}
                       </motion.span>
                     )}
                   </span>
@@ -515,65 +458,12 @@ export default function BraceletStudio() {
           </div>
         </Step>
 
-        {/* Step 3 — Charm */}
-        <Step
-          number={3}
-          title="Dije central"
-          summary={charm.name}
-          open={openStep === 3}
-          onToggle={() => setOpenStep(openStep === 3 ? 0 : 3)}
-        >
-          <div className="space-y-3">
-            {CHARMS.map((option) => {
-              const selected = charmId === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setCharmId(option.id)}
-                  aria-pressed={selected}
-                  className={`flex w-full items-center gap-4 rounded-2xl border px-4 py-3.5 text-left transition-all duration-300 ${
-                    selected
-                      ? 'border-oro bg-oro/10 shadow-aura-soft'
-                      : 'border-royal/10 bg-white/60 hover:border-oro/50'
-                  }`}
-                >
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
-                      selected ? 'bg-gradient-to-br from-oro-light to-oro text-royal-ink' : 'bg-cielo-100 text-oro-deep'
-                    }`}
-                  >
-                    {option.id === 'corazon' ? (
-                      <Gem className="h-5 w-5" strokeWidth={1.75} />
-                    ) : option.id === 'benito' ? (
-                      <Link2 className="h-5 w-5" strokeWidth={1.75} />
-                    ) : (
-                      <Wand2 className="h-5 w-5" strokeWidth={1.75} />
-                    )}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-serif text-base font-semibold text-royal">
-                      {option.name}
-                    </span>
-                    <span className="block text-xs text-royal/55">{option.description}</span>
-                  </span>
-                  {selected && (
-                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                      <Check className="h-5 w-5 text-oro-deep" strokeWidth={2.5} />
-                    </motion.span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </Step>
-
         {/* Price + CTA */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="rounded-3xl border border-oro/25 bg-white/85 p-6 shadow-card sm:p-7"
+          className="rounded-3xl border border-oro/25 bg-white/85 p-5 shadow-card sm:p-7"
         >
           <div className="flex items-baseline justify-between">
             <span className="text-xs font-semibold uppercase tracking-[0.25em] text-royal/55">
@@ -584,22 +474,22 @@ export default function BraceletStudio() {
             </span>
           </div>
           <motion.div whileTap={{ scale: 0.97 }} className="mt-5">
-            <button type="button" onClick={handleAdd} className="btn-gold w-full">
+            <button type="button" onClick={handleAdd} className="btn-gold w-full !px-4">
               {added ? (
                 <>
-                  <Check className="h-4 w-4" strokeWidth={3} />
+                  <Check className="h-4 w-4 shrink-0" strokeWidth={3} />
                   ¡Agregada con amor!
                 </>
               ) : (
                 <>
-                  <ShoppingBag className="h-4 w-4" strokeWidth={2} />
-                  Añadir configuración personalizada
+                  <ShoppingBag className="h-4 w-4 shrink-0" strokeWidth={2} />
+                  <span className="truncate">Añadir al carrito</span>
                 </>
               )}
             </button>
           </motion.div>
           <p className="mt-3 text-center text-xs text-royal/50">
-            Hecha a mano para ti · Elaboración de 5 a 8 días · Envíos a toda Colombia
+            Con Virgen Milagrosa y crucifijo · Hecha a mano · Envíos a toda Colombia
           </p>
         </motion.div>
       </div>

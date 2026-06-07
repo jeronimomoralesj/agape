@@ -23,6 +23,7 @@ import type { BlogPost, Order, OrderStatus, Product } from '@/lib/types';
 import { formatPrice } from '@/lib/types';
 import ProductForm, { type ProductFormValues } from '@/components/admin/ProductForm';
 import BlogForm, { type BlogFormValues } from '@/components/admin/BlogForm';
+import AdminIntro from '@/components/admin/AdminIntro';
 
 type Tab = 'resumen' | 'productos' | 'pedidos' | 'blog';
 
@@ -188,6 +189,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 pb-24 pt-12 lg:px-8">
+      {/* 🎰 Random cinematic welcome (Star Wars / BTTF / Spider-Man / Batman / Jurassic / Flamenco) */}
+      <AdminIntro />
+
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>

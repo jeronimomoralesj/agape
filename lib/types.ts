@@ -31,9 +31,8 @@ export interface CartItem {
   stock: number;
   /** Present for "Crea tu pulsera" custom configurations */
   custom?: {
-    beadId: string;
+    beadIds: string[];
     cordId: string;
-    charmId: string;
   };
 }
 

@@ -7,7 +7,7 @@ import { SITE_URL, breadcrumbJsonLd } from '@/lib/seo';
 export const metadata: Metadata = {
   title: 'Crea tu Pulsera Personalizada',
   description:
-    'Diseña tu propia pulsera católica: elige el color del cristal, el cordón ajustable y el dije central (Virgen Milagrosa, San Benito o Sagrado Corazón). Hecha a mano en Colombia.',
+    'Diseña tu propia pulsera católica: combina hasta 4 colores de pepas y elige el cordón ajustable. Con Virgen Milagrosa y crucifijo, hecha a mano en Colombia por $22.000.',
   alternates: { canonical: '/personalizar' },
 };
 
@@ -28,8 +28,9 @@ export default function PersonalizarPage() {
         </h1>
         <div className="gold-divider mt-6" />
         <p className="mx-auto mt-5 max-w-xl text-balance text-royal/65">
-          Elige cada detalle — el cristal, el cordón y el dije — y nosotros la ensamblamos
-          a mano, cuenta a cuenta, como una oración hecha solo para ti.
+          Combina los colores de pepas que más te hablen y elige tu cordón — nosotros la
+          ensamblamos a mano con la Virgen Milagrosa y su crucifijo, como una oración
+          hecha solo para ti.
         </p>
       </Reveal>
 

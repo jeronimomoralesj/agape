@@ -4,10 +4,10 @@ import Order from '@/models/Order';
 import Product from '@/models/Product';
 import {
   CUSTOM_PRICE,
+  MAX_BEAD_COLORS,
   customProductId,
   customTitle,
   findBead,
-  findCharm,
   findCord,
 } from '@/lib/customBracelet';
 
@@ -58,15 +58,26 @@ export async function POST(request: NextRequest) {
 
     // Custom "Crea tu pulsera" items — validated against the option catalog
     for (const item of customItems) {
-      const { beadId, cordId, charmId } = item.custom ?? {};
-      if (!findBead(beadId) || !findCord(cordId) || !findCharm(charmId)) {
+      const raw = item.custom ?? {};
+      // Accept legacy single-bead carts ({ beadId }) as well
+      const beadIds: string[] = Array.isArray(raw.beadIds)
+        ? raw.beadIds
+        : raw.beadId
+          ? [raw.beadId]
+          : [];
+      const { cordId } = raw;
+      const validBeads =
+        beadIds.length >= 1 &&
+        beadIds.length <= MAX_BEAD_COLORS &&
+        beadIds.every((id: string) => findBead(id));
+      if (!validBeads || !findCord(cordId)) {
         return NextResponse.json(
           { error: 'Configuración personalizada inválida' },
           { status: 400 }
         );
       }
       const quantity = Math.max(1, Math.min(Number(item.quantity) || 1, 10));
-      const config = { beadId, cordId, charmId };
+      const config = { beadIds, cordId };
       orderItems.push({
         productId: customProductId(config),
         title: customTitle(config),

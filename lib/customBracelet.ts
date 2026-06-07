@@ -18,13 +18,7 @@ export interface CordOption {
   hex: string;
 }
 
-export interface CharmOption {
-  id: string;
-  name: string;
-  description: string;
-}
-
-export const CUSTOM_PRICE = 85000; // COP — fixed server-side
+export const CUSTOM_PRICE = 22000; // COP — fixed server-side
 
 export const BEADS: BeadOption[] = [
   { id: 'esmeralda', name: 'Esmeralda Profunda', hex: '#025928' },
@@ -49,32 +43,17 @@ export const CORDS: CordOption[] = [
   { id: 'verde-oliva', name: 'Verde Oliva', hex: '#536643' },
 ];
 
-export const CHARMS: CharmOption[] = [
-  {
-    id: 'milagrosa',
-    name: 'Virgen Milagrosa',
-    description: 'Medalla ovalada de la Virgen con crucifijo colgante',
-  },
-  {
-    id: 'benito',
-    name: 'San Benito',
-    description: 'Medalla redonda de San Benito con crucifijo colgante',
-  },
-  {
-    id: 'corazon',
-    name: 'Sagrado Corazón',
-    description: 'Dije de corazón sagrado con crucifijo colgante',
-  },
-];
-
 export const GOLD = '#D4AF37';
 export const GOLD_LIGHT = '#E8CD6F';
 export const GOLD_DEEP = '#A8862A';
 
+/** Up to this many pepa colors can be combined in one bracelet */
+export const MAX_BEAD_COLORS = 4;
+
 export interface CustomConfig {
-  beadId: string;
+  /** Selected pepa colors, in order (alternated along the strand) */
+  beadIds: string[];
   cordId: string;
-  charmId: string;
 }
 
 export function findBead(id: string): BeadOption | undefined {
@@ -83,23 +62,31 @@ export function findBead(id: string): BeadOption | undefined {
 export function findCord(id: string): CordOption | undefined {
   return CORDS.find((c) => c.id === id);
 }
-export function findCharm(id: string): CharmOption | undefined {
-  return CHARMS.find((c) => c.id === id);
-}
 
 export function customProductId(config: CustomConfig): string {
-  return `custom-${config.beadId}-${config.cordId}-${config.charmId}`;
+  return `custom-${config.beadIds.join('.')}-${config.cordId}`;
 }
 
 export function customTitle(config: CustomConfig): string {
-  const bead = findBead(config.beadId);
+  const beads = config.beadIds
+    .map((id) => findBead(id)?.name)
+    .filter(Boolean)
+    .join(' + ');
   const cord = findCord(config.cordId);
-  const charm = findCharm(config.charmId);
-  return `Pulsera Personalizada — ${bead?.name ?? ''} · Cordón ${cord?.name ?? ''} · ${charm?.name ?? ''}`;
+  return `Pulsera Personalizada — Pepas ${beads} · Cordón ${cord?.name ?? ''}`;
 }
 
-/** Tiny inline SVG thumbnail for the cart (bead + gold cross on sky blue). */
-export function customCartImage(beadHex: string, cordHex: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#E0F2FE"/><circle cx="40" cy="40" r="30" fill="none" stroke="${cordHex}" stroke-width="3"/><circle cx="40" cy="10" r="7" fill="${beadHex}"/><circle cx="61" cy="19" r="7" fill="${beadHex}"/><circle cx="70" cy="40" r="7" fill="${beadHex}"/><circle cx="61" cy="61" r="7" fill="${beadHex}"/><circle cx="19" cy="61" r="7" fill="${beadHex}"/><circle cx="10" cy="40" r="7" fill="${beadHex}"/><circle cx="19" cy="19" r="7" fill="${beadHex}"/><rect x="37" y="56" width="6" height="20" rx="2" fill="${GOLD}"/><rect x="30" y="61" width="20" height="6" rx="2" fill="${GOLD}"/></svg>`;
+/** Tiny inline SVG thumbnail for the cart (pepas + gold cross on sky blue). */
+export function customCartImage(beadHexes: string[], cordHex: string): string {
+  const positions = [
+    [40, 10], [61, 19], [70, 40], [61, 61], [19, 61], [10, 40], [19, 19],
+  ];
+  const circles = positions
+    .map(
+      ([x, y], i) =>
+        `<circle cx="${x}" cy="${y}" r="7" fill="${beadHexes[i % beadHexes.length] ?? '#EBD4BE'}"/>`
+    )
+    .join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#E0F2FE"/><circle cx="40" cy="40" r="30" fill="none" stroke="${cordHex}" stroke-width="3"/>${circles}<rect x="37" y="56" width="6" height="20" rx="2" fill="${GOLD}"/><rect x="30" y="61" width="20" height="6" rx="2" fill="${GOLD}"/></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }

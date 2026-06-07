@@ -21,6 +21,8 @@ import {
   type CustomConfig,
 } from '@/lib/customBracelet';
 
+const FALLBACK_BEAD_HEX = '#EBD4BE';
+
 interface CartContextValue {
   items: CartItem[];
   isOpen: boolean;
@@ -108,7 +110,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           title: customTitle(config),
           price: CUSTOM_PRICE,
           image: customCartImage(
-            findBead(config.beadId)?.hex ?? '#EBD4BE',
+            config.beadIds.map((id) => findBead(id)?.hex ?? FALLBACK_BEAD_HEX),
             findCord(config.cordId)?.hex ?? '#E3D5BC'
           ),
           quantity: 1,
