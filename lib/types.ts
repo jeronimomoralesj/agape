@@ -45,6 +45,18 @@ export interface BlogPost {
   createdAt: string;
 }
 
+/** A pepa (bead) color managed from the admin and offered in the configurator. */
+export interface Pepa {
+  _id: string;
+  /** Stable id used inside cart items / orders */
+  id: string;
+  name: string;
+  hex: string;
+  light: boolean;
+  stock: number;
+  isActive: boolean;
+}
+
 export type OrderStatus = 'Pending' | 'Processing' | 'Shipped';
 
 export interface Order {

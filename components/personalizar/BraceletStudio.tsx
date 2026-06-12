@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, ChevronDown, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/components/cart/CartContext';
@@ -13,10 +13,14 @@ import {
   GOLD_DEEP,
   GOLD_LIGHT,
   MAX_BEAD_COLORS,
+  customTitle,
   type BeadOption,
 } from '@/lib/customBracelet';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+/** A palette color plus its live inventory level. */
+type PaletteBead = BeadOption & { stock: number };
 
 // ───────────────────────── Geometry (matches the physical bracelet) ─────────────────────────
 
@@ -39,9 +43,9 @@ interface Piece {
 }
 
 const PIECE_WEIGHT: Record<PieceKind, number> = { small: 1, ring: 0.52, large: 1.35 };
-// Per side, cord → medal: 5 pepas, [gold ring, separator, gold ring], 5 pepas
+// Per side, cord → medal: 10 pepas, [gold ring, separator, gold ring], 5 pepas
 const SIDE_PATTERN: PieceKind[] = [
-  'small', 'small', 'small', 'small', 'small',
+  'small', 'small', 'small', 'small', 'small', 'small', 'small', 'small', 'small', 'small',
   'ring', 'large', 'ring',
   'small', 'small', 'small', 'small', 'small',
 ];
@@ -65,7 +69,7 @@ function layoutSide(startDeg: number, endDeg: number, smallOffset: number): Piec
 // Left side: cord end (243°) sweeping counterclockwise to the medal (98°)
 // Right side: cord end (297°) sweeping clockwise to the medal (82°+360)
 const LEFT_SIDE = layoutSide(243, 98, 0);
-const RIGHT_SIDE = layoutSide(297, 442, 10);
+const RIGHT_SIDE = layoutSide(297, 442, 15);
 const ALL_PIECES = [...LEFT_SIDE, ...RIGHT_SIDE];
 
 const CORD_END_L = pt(243);
@@ -100,9 +104,10 @@ function BeadCircle({
 
   const isLarge = piece.kind === 'large';
   const r = isLarge ? 11 : 8;
-  const bead = isLarge ? null : beads[piece.smallIndex % beads.length];
+  const bead =
+    isLarge || beads.length === 0 ? null : beads[piece.smallIndex % beads.length];
   // Separators are smooth alabaster pieces, like the reference photo
-  const fill = isLarge ? '#ECE2D0' : bead!.hex;
+  const fill = isLarge ? '#ECE2D0' : bead?.hex ?? '#EBD4BE';
   const rim = isLarge || bead?.light ? 'rgba(150,130,95,0.45)' : 'rgba(0,0,0,0.28)';
 
   return (
@@ -308,18 +313,51 @@ function Step({
 
 export default function BraceletStudio() {
   const { addCustomItem } = useCart();
+  // Live, admin-managed palette. Seeded with the static list so the preview
+  // renders instantly, then replaced with the colors (and stock) from the API.
+  const [palette, setPalette] = useState<PaletteBead[]>(
+    BEADS.map((b) => ({ ...b, stock: 1 }))
+  );
   const [beadIds, setBeadIds] = useState<string[]>(['champana']);
   const [cordId, setCordId] = useState('crema');
   const [openStep, setOpenStep] = useState(1);
   const [added, setAdded] = useState(false);
 
+  useEffect(() => {
+    let active = true;
+    fetch('/api/pepas', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: PaletteBead[] | null) => {
+        if (active && Array.isArray(data) && data.length > 0) setPalette(data);
+      })
+      .catch(() => {
+        /* keep the static fallback palette */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Keep the selection valid as the live palette arrives (a color may have been
+  // removed or sold out in the admin since the static fallback was rendered).
+  useEffect(() => {
+    setBeadIds((prev) => {
+      const available = palette.filter((b) => b.stock > 0);
+      const kept = prev.filter((id) => available.some((b) => b.id === id));
+      if (kept.length > 0) return kept.length === prev.length ? prev : kept;
+      return available.length > 0 ? [available[0].id] : prev;
+    });
+  }, [palette]);
+
   const beads = useMemo(
-    () => beadIds.map((id) => BEADS.find((b) => b.id === id)).filter(Boolean) as BeadOption[],
-    [beadIds]
+    () => beadIds.map((id) => palette.find((b) => b.id === id)).filter(Boolean) as BeadOption[],
+    [beadIds, palette]
   );
   const cord = useMemo(() => CORDS.find((c) => c.id === cordId) ?? CORDS[0], [cordId]);
 
   const toggleBead = (id: string) => {
+    const target = palette.find((b) => b.id === id);
+    if (target && target.stock <= 0) return; // sold out — not selectable
     setBeadIds((prev) => {
       if (prev.includes(id)) {
         // always keep at least one pepa selected
@@ -331,7 +369,13 @@ export default function BraceletStudio() {
   };
 
   const handleAdd = () => {
-    addCustomItem({ beadIds, cordId });
+    const config = { beadIds, cordId };
+    addCustomItem(config, {
+      // Pass live names/hexes so the cart labels admin-added colors correctly
+      title: customTitle(config, (id) => palette.find((b) => b.id === id)),
+      beadHexes: beads.map((b) => b.hex),
+      cordHex: cord.hex,
+    });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2000);
   };
@@ -426,19 +470,25 @@ export default function BraceletStudio() {
             Elige hasta {MAX_BEAD_COLORS} colores — se alternan a lo largo de la pulsera.
           </p>
           <div className="grid grid-cols-3 gap-x-2 gap-y-5 sm:grid-cols-4">
-            {BEADS.map((option) => {
+            {palette.map((option) => {
               const selectedIndex = beadIds.indexOf(option.id);
               const selected = selectedIndex !== -1;
+              const soldOut = option.stock <= 0;
               return (
                 <button
                   key={option.id}
                   type="button"
                   onClick={() => toggleBead(option.id)}
+                  disabled={soldOut}
                   aria-pressed={selected}
-                  className="group flex flex-col items-center gap-1.5"
+                  className={`group flex flex-col items-center gap-1.5 ${
+                    soldOut ? 'cursor-not-allowed' : ''
+                  }`}
                 >
                   <span
                     className={`relative h-12 w-12 rounded-full transition-all duration-300 ${
+                      soldOut ? 'opacity-40 grayscale' : ''
+                    } ${
                       selected
                         ? 'scale-110 ring-2 ring-oro ring-offset-2 ring-offset-white shadow-aura-soft'
                         : 'ring-1 ring-royal/10 group-hover:scale-105 group-hover:ring-oro/50'
@@ -460,6 +510,11 @@ export default function BraceletStudio() {
                   <span className="text-center text-[0.65rem] font-medium leading-tight text-royal/70">
                     {option.name}
                   </span>
+                  {soldOut && (
+                    <span className="text-[0.6rem] font-bold uppercase tracking-wide text-amber-600">
+                      Agotado
+                    </span>
+                  )}
                 </button>
               );
             })}

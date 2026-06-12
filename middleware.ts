@@ -13,6 +13,7 @@ export async function middleware(request: NextRequest) {
     !isPublicViewPing &&
     ((pathname.startsWith('/api/products') && request.method !== 'GET') ||
       (pathname.startsWith('/api/blog') && request.method !== 'GET') ||
+      (pathname.startsWith('/api/pepas') && request.method !== 'GET') ||
       (pathname.startsWith('/api/orders') && request.method === 'GET'));
 
   if (!isAdminPage && !isProtectedApi) return NextResponse.next();
@@ -37,6 +38,8 @@ export const config = {
     '/api/products',
     '/api/blog/:path*',
     '/api/blog',
+    '/api/pepas/:path*',
+    '/api/pepas',
     '/api/orders',
   ],
 };

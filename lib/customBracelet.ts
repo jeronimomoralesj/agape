@@ -67,9 +67,14 @@ export function customProductId(config: CustomConfig): string {
   return `custom-${config.beadIds.join('.')}-${config.cordId}`;
 }
 
-export function customTitle(config: CustomConfig): string {
+export function customTitle(
+  config: CustomConfig,
+  /** Resolve a bead id to its name — defaults to the static palette, but the
+   *  orders API passes a resolver backed by the admin-managed colors. */
+  resolveBead: (id: string) => { name?: string } | undefined = findBead
+): string {
   const beads = config.beadIds
-    .map((id) => findBead(id)?.name)
+    .map((id) => resolveBead(id)?.name)
     .filter(Boolean)
     .join(' + ');
   const cord = findCord(config.cordId);

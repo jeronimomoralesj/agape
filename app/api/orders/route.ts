@@ -7,9 +7,9 @@ import {
   MAX_BEAD_COLORS,
   customProductId,
   customTitle,
-  findBead,
   findCord,
 } from '@/lib/customBracelet';
+import { getPepas } from '@/lib/pepas';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,7 +56,13 @@ export async function POST(request: NextRequest) {
     const stockDecrements = [];
     let total = 0;
 
-    // Custom "Crea tu pulsera" items — validated against the option catalog
+    // Available pepa colors (admin-managed) — only needed for custom pieces
+    const pepaMap =
+      customItems.length > 0
+        ? new Map((await getPepas(false)).map((p) => [p.id, p]))
+        : new Map();
+
+    // Custom "Crea tu pulsera" items — validated against the live color catalog
     for (const item of customItems) {
       const raw = item.custom ?? {};
       // Accept legacy single-bead carts ({ beadId }) as well
@@ -69,7 +75,7 @@ export async function POST(request: NextRequest) {
       const validBeads =
         beadIds.length >= 1 &&
         beadIds.length <= MAX_BEAD_COLORS &&
-        beadIds.every((id: string) => findBead(id));
+        beadIds.every((id: string) => pepaMap.has(id));
       if (!validBeads || !findCord(cordId)) {
         return NextResponse.json(
           { error: 'Configuración personalizada inválida' },
@@ -80,7 +86,7 @@ export async function POST(request: NextRequest) {
       const config = { beadIds, cordId };
       orderItems.push({
         productId: customProductId(config),
-        title: customTitle(config),
+        title: customTitle(config, (id) => pepaMap.get(id)),
         quantity,
         price: CUSTOM_PRICE,
       });

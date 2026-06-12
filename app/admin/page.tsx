@@ -12,6 +12,7 @@ import {
   Gem,
   LogOut,
   Package,
+  Palette,
   Pencil,
   Plus,
   ReceiptText,
@@ -19,13 +20,14 @@ import {
   TrendingUp,
   Wallet,
 } from 'lucide-react';
-import type { BlogPost, Order, OrderStatus, Product } from '@/lib/types';
+import type { BlogPost, Order, OrderStatus, Pepa, Product } from '@/lib/types';
 import { formatPrice } from '@/lib/types';
 import ProductForm, { type ProductFormValues } from '@/components/admin/ProductForm';
 import BlogForm, { type BlogFormValues } from '@/components/admin/BlogForm';
+import PepaForm, { type PepaFormValues } from '@/components/admin/PepaForm';
 import AdminIntro from '@/components/admin/AdminIntro';
 
-type Tab = 'resumen' | 'productos' | 'pedidos' | 'blog';
+type Tab = 'resumen' | 'productos' | 'pedidos' | 'pepas' | 'blog';
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   Pending: 'Pendiente',
@@ -45,23 +47,28 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [pepas, setPepas] = useState<Pepa[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [creatingPost, setCreatingPost] = useState(false);
+  const [editingPepa, setEditingPepa] = useState<Pepa | null>(null);
+  const [creatingPepa, setCreatingPepa] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [productsRes, ordersRes, postsRes] = await Promise.all([
+      const [productsRes, ordersRes, postsRes, pepasRes] = await Promise.all([
         fetch('/api/products?all=true', { cache: 'no-store' }),
         fetch('/api/orders', { cache: 'no-store' }),
         fetch('/api/blog?all=true', { cache: 'no-store' }),
+        fetch('/api/pepas?all=true', { cache: 'no-store' }),
       ]);
       if (productsRes.ok) setProducts(await productsRes.json());
       if (ordersRes.ok) setOrders(await ordersRes.json());
       if (postsRes.ok) setPosts(await postsRes.json());
+      if (pepasRes.ok) setPepas(await pepasRes.json());
     } finally {
       setLoading(false);
     }
@@ -180,10 +187,40 @@ export default function AdminDashboard() {
     if (res.ok) await loadData();
   };
 
+  const createPepa = async (values: PepaFormValues) => {
+    const res = await fetch('/api/pepas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+    if (!res.ok) throw new Error('No se pudo crear el color');
+    setCreatingPepa(false);
+    await loadData();
+  };
+
+  const updatePepa = async (values: PepaFormValues) => {
+    if (!editingPepa) return;
+    const res = await fetch(`/api/pepas/${editingPepa._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+    if (!res.ok) throw new Error('No se pudo actualizar el color');
+    setEditingPepa(null);
+    await loadData();
+  };
+
+  const deletePepa = async (pepa: Pepa) => {
+    if (!window.confirm(`¿Eliminar el color "${pepa.name}" definitivamente?`)) return;
+    const res = await fetch(`/api/pepas/${pepa._id}`, { method: 'DELETE' });
+    if (res.ok) await loadData();
+  };
+
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: 'resumen', label: 'Resumen', icon: <BarChart3 className="h-4 w-4" /> },
     { key: 'productos', label: 'Productos', icon: <Gem className="h-4 w-4" /> },
     { key: 'pedidos', label: 'Pedidos', icon: <ReceiptText className="h-4 w-4" /> },
+    { key: 'pepas', label: 'Pepas', icon: <Palette className="h-4 w-4" /> },
     { key: 'blog', label: 'Blog', icon: <BookOpen className="h-4 w-4" /> },
   ];
 
@@ -546,6 +583,104 @@ export default function AdminDashboard() {
                     ))}
                   </ul>
                 )}
+              </div>
+            )}
+
+            {/* ────────────── PEPAS ────────────── */}
+            {tab === 'pepas' && (
+              <div className="space-y-6">
+                {creatingPepa || editingPepa ? (
+                  <PepaForm
+                    initial={editingPepa}
+                    onSubmit={editingPepa ? updatePepa : createPepa}
+                    onCancel={() => {
+                      setCreatingPepa(false);
+                      setEditingPepa(null);
+                    }}
+                  />
+                ) : (
+                  <button type="button" onClick={() => setCreatingPepa(true)} className="btn-gold">
+                    <Plus className="h-4 w-4" />
+                    Nuevo color
+                  </button>
+                )}
+
+                <div className="overflow-hidden rounded-3xl border border-oro/20 bg-white/75 shadow-card">
+                  {pepas.length === 0 ? (
+                    <p className="p-8 text-center text-sm text-royal/55">
+                      No hay colores todavía. Crea el primero para el configurador. ✨
+                    </p>
+                  ) : (
+                    <ul className="divide-y divide-oro/15">
+                      <AnimatePresence initial={false}>
+                        {pepas.map((pepa) => (
+                          <motion.li
+                            key={pepa._id}
+                            layout
+                            exit={{ opacity: 0, x: 40 }}
+                            className="flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6"
+                          >
+                            <span
+                              className="h-12 w-12 shrink-0 rounded-full ring-1 ring-royal/15"
+                              style={{
+                                background: `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.7), rgba(255,255,255,0.08) 45%, rgba(0,0,0,0.12)), ${pepa.hex}`,
+                              }}
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-semibold text-royal">
+                                {pepa.name}
+                                {!pepa.isActive && (
+                                  <span className="ml-2 rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">
+                                    Oculto
+                                  </span>
+                                )}
+                                {pepa.stock === 0 && (
+                                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-amber-700">
+                                    Agotado
+                                  </span>
+                                )}
+                              </p>
+                              <p className="flex flex-wrap items-center gap-x-2 text-xs text-royal/55">
+                                <span className="font-mono uppercase">{pepa.hex}</span>
+                                <span>·</span>
+                                <span
+                                  className={
+                                    pepa.stock <= 3 ? 'font-bold text-amber-700' : ''
+                                  }
+                                >
+                                  {pepa.stock} {pepa.stock === 1 ? 'unidad' : 'unidades'}
+                                </span>
+                                {pepa.light && <span>· tono claro</span>}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingPepa(pepa);
+                                  setCreatingPepa(false);
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                aria-label={`Editar ${pepa.name}`}
+                                className="rounded-full border border-royal/15 p-2.5 text-royal/60 transition-colors hover:border-oro hover:text-oro-deep"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deletePepa(pepa)}
+                                aria-label={`Eliminar ${pepa.name}`}
+                                className="rounded-full border border-royal/15 p-2.5 text-royal/60 transition-colors hover:border-red-300 hover:text-red-500"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </motion.li>
+                        ))}
+                      </AnimatePresence>
+                    </ul>
+                  )}
+                </div>
               </div>
             )}
 
