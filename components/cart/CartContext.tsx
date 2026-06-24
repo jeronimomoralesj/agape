@@ -12,12 +12,12 @@ import {
 import type { CartItem, Product } from '@/lib/types';
 import { finalPrice } from '@/lib/types';
 import {
-  CUSTOM_PRICE,
+  CUSTOM_PRICES,
+  configCord,
   customCartImage,
   customProductId,
   customTitle,
   findBead,
-  findCord,
   type CustomConfig,
 } from '@/lib/customBracelet';
 
@@ -35,7 +35,7 @@ interface CartContextValue {
    *  cart shows the right label/thumbnail even for colors not in the static palette. */
   addCustomItem: (
     config: CustomConfig,
-    meta?: { title?: string; beadHexes?: string[]; cordHex?: string }
+    meta?: { title?: string; mariaHex?: string; jesusHex?: string; cordHex?: string }
   ) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -100,7 +100,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addCustomItem = useCallback(
     (
       config: CustomConfig,
-      meta?: { title?: string; beadHexes?: string[]; cordHex?: string }
+      meta?: { title?: string; mariaHex?: string; jesusHex?: string; cordHex?: string }
     ) => {
       const productId = customProductId(config);
       setItems((prev) => {
@@ -117,11 +117,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           {
             productId,
             title: meta?.title ?? customTitle(config),
-            price: CUSTOM_PRICE,
+            price: CUSTOM_PRICES[config.type],
             image: customCartImage(
-              meta?.beadHexes ??
-                config.beadIds.map((id) => findBead(id)?.hex ?? FALLBACK_BEAD_HEX),
-              meta?.cordHex ?? findCord(config.cordId)?.hex ?? '#E3D5BC'
+              meta?.mariaHex ?? findBead(config.mariaId)?.hex ?? FALLBACK_BEAD_HEX,
+              meta?.jesusHex ?? findBead(config.jesusId)?.hex ?? FALLBACK_BEAD_HEX,
+              meta?.cordHex ?? configCord(config).hex
             ),
             quantity: 1,
             stock: 10, // handmade to order — cap per pedido

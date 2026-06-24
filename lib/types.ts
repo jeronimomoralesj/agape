@@ -29,10 +29,16 @@ export interface CartItem {
   image: string;
   quantity: number;
   stock: number;
-  /** Present for "Crea tu pulsera" custom configurations */
+  /** Present for "Crea tu pulsera / collar" custom configurations */
   custom?: {
-    beadIds: string[];
-    cordId: string;
+    type?: 'pulsera' | 'collar';
+    /** Color of the small María pepas */
+    mariaId?: string;
+    /** Color of the larger Jesús intersection pepas */
+    jesusId?: string;
+    cordId?: string;
+    /** Legacy single-list carts (pre maría/jesús split) */
+    beadIds?: string[];
   };
 }
 
@@ -53,6 +59,8 @@ export interface Pepa {
   name: string;
   hex: string;
   light: boolean;
+  /** Devotional family: 'maria' = small pepas · 'jesus' = intersection pepas */
+  kind: 'maria' | 'jesus';
   stock: number;
   isActive: boolean;
 }

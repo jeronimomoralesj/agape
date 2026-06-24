@@ -21,6 +21,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (body.name !== undefined) update.name = body.name;
     if (body.hex !== undefined) update.hex = body.hex;
     if (body.light !== undefined) update.light = !!body.light;
+    if (body.kind !== undefined) update.kind = body.kind === 'jesus' ? 'jesus' : 'maria';
     if (body.stock !== undefined) update.stock = Math.max(0, Number(body.stock) || 0);
     if (body.isActive !== undefined) update.isActive = body.isActive;
 

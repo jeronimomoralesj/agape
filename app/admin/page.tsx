@@ -629,6 +629,15 @@ export default function AdminDashboard() {
                             <div className="min-w-0 flex-1">
                               <p className="truncate font-semibold text-royal">
                                 {pepa.name}
+                                <span
+                                  className={`ml-2 rounded-full px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider ${
+                                    pepa.kind === 'jesus'
+                                      ? 'bg-oro/15 text-oro-deep'
+                                      : 'bg-cielo-100 text-royal/60'
+                                  }`}
+                                >
+                                  {pepa.kind === 'jesus' ? 'Jesús' : 'María'}
+                                </span>
                                 {!pepa.isActive && (
                                   <span className="ml-2 rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">
                                     Oculto

@@ -3,11 +3,11 @@ import { dbConnect } from '@/lib/db';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
 import {
-  CUSTOM_PRICE,
-  MAX_BEAD_COLORS,
+  CUSTOM_PRICES,
   customProductId,
   customTitle,
   findCord,
+  type ProductType,
 } from '@/lib/customBracelet';
 import { getPepas } from '@/lib/pepas';
 
@@ -62,35 +62,37 @@ export async function POST(request: NextRequest) {
         ? new Map((await getPepas(false)).map((p) => [p.id, p]))
         : new Map();
 
-    // Custom "Crea tu pulsera" items — validated against the live color catalog
+    // Custom "Crea tu pulsera / collar" items — validated against the live catalog
     for (const item of customItems) {
       const raw = item.custom ?? {};
-      // Accept legacy single-bead carts ({ beadId }) as well
-      const beadIds: string[] = Array.isArray(raw.beadIds)
-        ? raw.beadIds
-        : raw.beadId
-          ? [raw.beadId]
-          : [];
-      const { cordId } = raw;
-      const validBeads =
-        beadIds.length >= 1 &&
-        beadIds.length <= MAX_BEAD_COLORS &&
-        beadIds.every((id: string) => pepaMap.has(id));
-      if (!validBeads || !findCord(cordId)) {
+      const type: ProductType = raw.type === 'collar' ? 'collar' : 'pulsera';
+
+      // Resolve the two colors, tolerating legacy single-list carts.
+      const legacyFirst = Array.isArray(raw.beadIds) ? raw.beadIds[0] : raw.beadId;
+      const mariaId: string | undefined = raw.mariaId ?? legacyFirst;
+      const jesusId: string | undefined =
+        raw.jesusId ?? (Array.isArray(raw.beadIds) ? raw.beadIds[1] : undefined) ?? mariaId;
+      const cordId: string | undefined = type === 'pulsera' ? raw.cordId : undefined;
+
+      const colorsOk = !!mariaId && !!jesusId && pepaMap.has(mariaId) && pepaMap.has(jesusId);
+      const cordOk = type === 'collar' || !!findCord(cordId);
+      if (!colorsOk || !cordOk) {
         return NextResponse.json(
           { error: 'Configuración personalizada inválida' },
           { status: 400 }
         );
       }
+
       const quantity = Math.max(1, Math.min(Number(item.quantity) || 1, 10));
-      const config = { beadIds, cordId };
+      const config = { type, mariaId: mariaId!, jesusId: jesusId!, cordId };
+      const price = CUSTOM_PRICES[type];
       orderItems.push({
         productId: customProductId(config),
         title: customTitle(config, (id) => pepaMap.get(id)),
         quantity,
-        price: CUSTOM_PRICE,
+        price,
       });
-      total += CUSTOM_PRICE * quantity;
+      total += price * quantity;
     }
 
     for (const item of catalogItems) {

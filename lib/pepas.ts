@@ -8,7 +8,7 @@
  */
 import { dbConnect } from './db';
 import Pepa, { type PepaDoc } from '@/models/Pepa';
-import { BEADS } from './customBracelet';
+import { BEADS, type PepaKind } from './customBracelet';
 
 export interface PepaRecord {
   _id: string;
@@ -17,6 +17,8 @@ export interface PepaRecord {
   name: string;
   hex: string;
   light: boolean;
+  /** Devotional family — María (small) or Jesús (intersection) */
+  kind: PepaKind;
   stock: number;
   isActive: boolean;
 }
@@ -30,29 +32,48 @@ export function toPepaRecord(doc: LeanPepa): PepaRecord {
     name: doc.name,
     hex: doc.hex,
     light: !!doc.light,
+    // Older docs predate the field — default them to María.
+    kind: doc.kind === 'jesus' ? 'jesus' : 'maria',
     stock: doc.stock ?? 0,
     isActive: doc.isActive ?? true,
   };
 }
 
-/** Seed the original palette the first time the collection is empty. */
+function seedDocs(kind: PepaKind, orderBase: number) {
+  return BEADS.map((b, i) => ({
+    slug: kind === 'jesus' ? `${b.id}-jesus` : b.id,
+    name: b.name,
+    hex: b.hex,
+    light: !!b.light,
+    kind,
+    stock: 100,
+    isActive: true,
+    order: orderBase + i,
+  }));
+}
+
+/**
+ * Make sure both pepa families exist. Fresh installs get the full María +
+ * Jesús palette; installs that predate the `kind` field (María only) get the
+ * Jesús set backfilled so the configurator's second picker is never empty.
+ */
 export async function ensurePepasSeeded(): Promise<void> {
-  const count = await Pepa.estimatedDocumentCount();
-  if (count > 0) return;
-  await Pepa.insertMany(
-    BEADS.map((b, i) => ({
-      slug: b.id,
-      name: b.name,
-      hex: b.hex,
-      light: !!b.light,
-      stock: 100,
-      isActive: true,
-      order: i,
-    })),
-    { ordered: false }
-  ).catch(() => {
-    /* ignore races — another request may have seeded first */
-  });
+  const total = await Pepa.countDocuments();
+  if (total === 0) {
+    await Pepa.insertMany(
+      [...seedDocs('maria', 0), ...seedDocs('jesus', BEADS.length)],
+      { ordered: false }
+    ).catch(() => {
+      /* ignore races — another request may have seeded first */
+    });
+    return;
+  }
+  const jesusCount = await Pepa.countDocuments({ kind: 'jesus' });
+  if (jesusCount === 0) {
+    await Pepa.insertMany(seedDocs('jesus', total), { ordered: false }).catch(() => {
+      /* ignore races / pre-existing slugs */
+    });
+  }
 }
 
 export async function getPepas(includeInactive = false): Promise<PepaRecord[]> {

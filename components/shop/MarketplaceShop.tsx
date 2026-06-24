@@ -53,13 +53,13 @@ function CustomBuilderCard() {
         {/* Info */}
         <div className="flex flex-1 flex-col px-3.5 pb-4 pt-3 sm:px-5 sm:pt-4">
           <h3 className="font-serif text-base font-semibold text-royal transition-colors duration-300 group-hover:text-oro-deep sm:text-lg">
-            Crea tu pulsera
+            Crea tu pulsera o collar
           </h3>
           <p className="mt-1 hidden text-sm leading-relaxed text-royal/60 sm:block">
-            Combina tus colores de pepas y tu cordón. Con Virgen Milagrosa y crucifijo.
+            Elige los colores de tus pepas María y Jesús. Con Virgen Milagrosa y crucifijo.
           </p>
           <p className="mt-2 font-serif text-lg font-bold text-royal sm:mt-3 sm:text-xl">
-            {formatPrice(CUSTOM_PRICE)}
+            Desde {formatPrice(CUSTOM_PRICE)}
           </p>
           <span className="btn-gold mt-auto w-full !px-3 !py-2.5 !text-xs">
             <Wand2 className="h-4 w-4 shrink-0" strokeWidth={2} />

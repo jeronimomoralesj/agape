@@ -9,6 +9,7 @@ export interface PepaFormValues {
   name: string;
   hex: string;
   light: boolean;
+  kind: 'maria' | 'jesus';
   stock: number;
   isActive: boolean;
 }
@@ -17,6 +18,7 @@ const EMPTY: PepaFormValues = {
   name: '',
   hex: '#EBD4BE',
   light: false,
+  kind: 'maria',
   stock: 0,
   isActive: true,
 };
@@ -36,6 +38,7 @@ export default function PepaForm({
           name: initial.name,
           hex: initial.hex,
           light: initial.light,
+          kind: initial.kind,
           stock: initial.stock,
           isActive: initial.isActive,
         }
@@ -133,6 +136,36 @@ export default function PepaForm({
               placeholder="#EBD4BE"
               className="input-luxe font-mono"
             />
+          </div>
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="mb-1.5 block text-sm font-semibold text-royal">
+            Tipo de pepa
+          </label>
+          <div className="flex gap-2">
+            {([
+              { value: 'maria', label: 'Sagrada María', hint: 'pepas pequeñas' },
+              { value: 'jesus', label: 'Cristo Jesús', hint: 'pepas de intersección' },
+            ] as const).map((opt) => {
+              const active = values.kind === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => set('kind', opt.value)}
+                  aria-pressed={active}
+                  className={`flex-1 rounded-2xl border px-4 py-3 text-left transition-colors ${
+                    active
+                      ? 'border-oro bg-oro/10 text-royal shadow-aura-soft'
+                      : 'border-royal/15 text-royal/60 hover:border-oro/50'
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{opt.label}</span>
+                  <span className="block text-xs text-royal/50">{opt.hint}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

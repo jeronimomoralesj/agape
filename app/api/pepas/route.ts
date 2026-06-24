@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       name: body.name,
       hex: body.hex,
       light: !!body.light,
+      kind: body.kind === 'jesus' ? 'jesus' : 'maria',
       stock: Math.max(0, Number(body.stock) || 0),
       isActive: body.isActive ?? true,
       order,

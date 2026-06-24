@@ -17,6 +17,8 @@ const PepaSchema = new Schema(
     },
     /** true for translucent/light beads that need a visible rim */
     light: { type: Boolean, default: false },
+    /** Devotional family: 'maria' = small pepas · 'jesus' = larger intersection pepas */
+    kind: { type: String, enum: ['maria', 'jesus'], default: 'maria' },
     /** Units of this color currently in inventory */
     stock: { type: Number, default: 0, min: 0 },
     isActive: { type: Boolean, default: true },
