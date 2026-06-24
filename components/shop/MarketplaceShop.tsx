@@ -6,8 +6,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUpDown, Search, SearchX, Wand2, X } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { formatPrice } from '@/lib/types';
-import { BEADS, CORDS, CUSTOM_PRICE } from '@/lib/customBracelet';
+import { CUSTOM_PRICE } from '@/lib/customBracelet';
+import { PulseraPreview } from '@/components/personalizar/pulseraArt';
 import ProductCard from './ProductCard';
+
+/** A warm, on-brand default look for the "design your own" tile. */
+const PREVIEW_MARIA = { hex: '#7A9FE6', light: false }; // Azul Celestial
+const PREVIEW_JESUS = { hex: '#025928', light: false }; // Esmeralda Profunda
+const PREVIEW_CORD = '#E3D5BC'; // Crema
 
 /** Always-present "build your own" tile with its own flow (/personalizar). */
 function CustomBuilderCard() {
@@ -21,28 +27,16 @@ function CustomBuilderCard() {
         href="/personalizar"
         className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-oro/40 bg-gradient-to-b from-white/90 via-cielo-100/70 to-oro/10 shadow-card transition-shadow duration-500 hover:shadow-luxe"
       >
-        {/* Swatch mosaic */}
-        <div className="relative flex aspect-[4/5] flex-col items-center justify-center overflow-hidden">
+        {/* Real pulsera render so the tile shows the actual product */}
+        <div className="relative flex aspect-[4/5] items-center justify-center overflow-hidden px-6 py-4">
           <div className="pointer-events-none absolute -top-16 left-1/2 h-44 w-44 -translate-x-1/2 rounded-full bg-oro/15 blur-3xl" />
-          <div className="grid max-w-[11rem] grid-cols-5 gap-2 transition-transform duration-700 group-hover:scale-105 sm:max-w-[13rem] sm:gap-2.5">
-            {BEADS.slice(0, 10).map((bead) => (
-              <span
-                key={bead.id}
-                className="aspect-square rounded-full shadow-sm"
-                style={{
-                  background: `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.7), rgba(255,255,255,0.08) 45%, rgba(0,0,0,0.12)), ${bead.hex}`,
-                }}
-              />
-            ))}
-          </div>
-          <div className="mt-4 flex gap-2">
-            {CORDS.map((cord) => (
-              <span
-                key={cord.id}
-                className="h-2 w-10 rounded-full"
-                style={{ backgroundColor: cord.hex }}
-              />
-            ))}
+          <div className="w-full max-w-[11rem] transition-transform duration-700 group-hover:scale-[1.04] sm:max-w-[12rem]">
+            <PulseraPreview
+              maria={PREVIEW_MARIA}
+              jesus={PREVIEW_JESUS}
+              cordHex={PREVIEW_CORD}
+              animate={false}
+            />
           </div>
           <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-oro px-2.5 py-1 text-[0.6rem] font-bold uppercase tracking-[0.15em] text-royal-ink shadow-aura-soft sm:left-4 sm:top-4">
             <Wand2 className="h-3 w-3" />
