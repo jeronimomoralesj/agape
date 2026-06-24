@@ -56,7 +56,7 @@ function CustomBuilderCard() {
             Crea tu pulsera o collar
           </h3>
           <p className="mt-1 hidden text-sm leading-relaxed text-royal/60 sm:block">
-            Elige los colores de tus pepas María y Jesús. Con Virgen Milagrosa y crucifijo.
+            Elige los colores de tus pepas Ave María y Padre Nuestro. Con Virgen Milagrosa y crucifijo.
           </p>
           <p className="mt-2 font-serif text-lg font-bold text-royal sm:mt-3 sm:text-xl">
             Desde {formatPrice(CUSTOM_PRICE)}

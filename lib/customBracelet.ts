@@ -83,9 +83,9 @@ export const GOLD_DEEP = '#A8862A';
 export interface CustomConfig {
   /** Which line the customer is designing */
   type: ProductType;
-  /** Color of the small "Sagrada María" pepas */
+  /** Color of the small "Ave María" pepas */
   mariaId: string;
-  /** Color of the larger "Cristo Jesús" intersection pepas */
+  /** Color of the larger "Padre Nuestro" intersection pepas */
   jesusId: string;
   /** Cord color — only meaningful for the pulsera */
   cordId?: string;
@@ -120,7 +120,7 @@ export function customTitle(
   const maria = resolveBead(config.mariaId)?.name ?? '';
   const jesus = resolveBead(config.jesusId)?.name ?? '';
   const noun = config.type === 'collar' ? 'Collar Personalizado' : 'Pulsera Personalizada';
-  const pepas = `Pepas María ${maria} · Jesús ${jesus}`;
+  const pepas = `Pepas Ave María ${maria} · Padre Nuestro ${jesus}`;
   if (config.type === 'collar') return `${noun} — ${pepas}`;
   const cord = configCord(config);
   return `${noun} — ${pepas} · Cordón ${cord.name}`;

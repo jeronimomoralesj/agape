@@ -99,7 +99,7 @@ function rep<T>(n: number, v: T): T[] {
 const MARIA_R = 6.8;
 const JESUS_R = 9.8;
 
-/** Five decades: each = 1 Jesús intersection pepa + 10 Sagrada María pepas. */
+/** Five decades: each = 1 Padre Nuestro intersection pepa + 10 Ave María pepas. */
 function rosaryLoop(): ArcStep[] {
   const out: ArcStep[] = [];
   for (let d = 0; d < 5; d++) {
@@ -624,7 +624,7 @@ export default function BraceletStudio() {
                     background: `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.7), rgba(255,255,255,0.08) 45%, rgba(0,0,0,0.12)), ${maria.hex}`,
                   }}
                 />
-                <span className="text-[0.65rem] text-royal/55">María</span>
+                <span className="text-[0.65rem] text-royal/55">Ave María</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span
@@ -634,7 +634,7 @@ export default function BraceletStudio() {
                     background: `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.7), rgba(255,255,255,0.08) 45%, rgba(0,0,0,0.12)), ${jesus.hex}`,
                   }}
                 />
-                <span className="text-[0.65rem] text-royal/55">Jesús</span>
+                <span className="text-[0.65rem] text-royal/55">Padre Nuestro</span>
               </span>
             </div>
             <p className="mt-1.5 truncate px-2 text-[0.65rem] text-royal/55 sm:text-xs">
@@ -722,10 +722,10 @@ export default function BraceletStudio() {
           </Step>
         )}
 
-        {/* Step — Pepas Sagrada María */}
+        {/* Step — Pepas Ave María */}
         <Step
           number={stepMaria}
-          title="Pepas · Sagrada María"
+          title="Pepas · Ave María"
           summary={mariaBead?.name ?? 'Elige un color'}
           open={openStep === stepMaria}
           onToggle={() => setOpenStep(openStep === stepMaria ? 0 : stepMaria)}
@@ -736,10 +736,10 @@ export default function BraceletStudio() {
           <ColorGrid options={mariaOptions} selectedId={mariaId} onSelect={setMariaId} />
         </Step>
 
-        {/* Step — Pepas Cristo Jesús */}
+        {/* Step — Pepas Padre Nuestro */}
         <Step
           number={stepJesus}
-          title="Pepas · Cristo Jesús"
+          title="Pepas · Padre Nuestro"
           summary={jesusBead?.name ?? 'Elige un color'}
           open={openStep === stepJesus}
           onToggle={() => setOpenStep(openStep === stepJesus ? 0 : stepJesus)}

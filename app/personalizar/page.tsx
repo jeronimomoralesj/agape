@@ -7,7 +7,7 @@ import { SITE_URL, breadcrumbJsonLd } from '@/lib/seo';
 export const metadata: Metadata = {
   title: 'Crea tu Pulsera o Collar Personalizado',
   description:
-    'Diseña tu propia pulsera o collar católico: elige el color de tus pepas Sagrada María y Cristo Jesús. Con Virgen Milagrosa y crucifijo, hechos a mano en Colombia.',
+    'Diseña tu propia pulsera o collar católico: elige el color de tus pepas Ave María y Padre Nuestro. Con Virgen Milagrosa y crucifijo, hechos a mano en Colombia.',
   alternates: { canonical: '/personalizar' },
 };
 
@@ -28,7 +28,7 @@ export default function PersonalizarPage() {
         </h1>
         <div className="gold-divider mt-6" />
         <p className="mx-auto mt-5 max-w-xl text-balance text-royal/65">
-          Elige el color de tus pepas Sagrada María y Cristo Jesús — nosotros lo
+          Elige el color de tus pepas Ave María y Padre Nuestro — nosotros lo
           ensamblamos a mano con la Virgen Milagrosa y su crucifijo, como una oración
           hecha solo para ti.
         </p>

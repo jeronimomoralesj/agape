@@ -636,7 +636,7 @@ export default function AdminDashboard() {
                                       : 'bg-cielo-100 text-royal/60'
                                   }`}
                                 >
-                                  {pepa.kind === 'jesus' ? 'Jesús' : 'María'}
+                                  {pepa.kind === 'jesus' ? 'Padre Nuestro' : 'Ave María'}
                                 </span>
                                 {!pepa.isActive && (
                                   <span className="ml-2 rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">

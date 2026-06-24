@@ -145,8 +145,8 @@ export default function PepaForm({
           </label>
           <div className="flex gap-2">
             {([
-              { value: 'maria', label: 'Sagrada María', hint: 'pepas pequeñas' },
-              { value: 'jesus', label: 'Cristo Jesús', hint: 'pepas de intersección' },
+              { value: 'maria', label: 'Ave María', hint: 'pepas pequeñas' },
+              { value: 'jesus', label: 'Padre Nuestro', hint: 'pepas de intersección' },
             ] as const).map((opt) => {
               const active = values.kind === opt.value;
               return (
