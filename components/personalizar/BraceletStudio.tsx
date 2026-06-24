@@ -40,84 +40,117 @@ interface ArcStep {
 
 // ───────────────────────── Geometry helpers ─────────────────────────
 
-function deg2pt(cx: number, cy: number, R: number, deg: number): { x: number; y: number } {
+function loopPt(
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  deg: number,
+  taper = 0
+): { x: number; y: number } {
   const rad = (deg * Math.PI) / 180;
-  return { x: cx + R * Math.cos(rad), y: cy + R * Math.sin(rad) };
+  const sy = Math.sin(rad);
+  // Narrow the loop toward the bottom for a softer, teardrop hang.
+  const widthScale = 1 - taper * ((sy + 1) / 2);
+  return { x: cx + rx * widthScale * Math.cos(rad), y: cy + ry * sy };
 }
 
-/** Distribute a weighted pattern of beads along a circular arc. */
-function layoutArc(
-  pattern: ArcStep[],
-  o: { cx: number; cy: number; R: number; startDeg: number; endDeg: number }
-): Piece[] {
+interface LoopOpts {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  startDeg: number;
+  endDeg: number;
+  taper?: number;
+}
+
+/** Distribute a weighted pattern of beads along an elliptical arc. */
+function layoutLoop(pattern: ArcStep[], o: LoopOpts): Piece[] {
   const total = pattern.reduce((s, p) => s + p.weight, 0);
   const pieces: Piece[] = [];
   let cursor = 0;
   for (const p of pattern) {
     const t = (cursor + p.weight / 2) / total;
     const deg = o.startDeg + (o.endDeg - o.startDeg) * t;
-    const { x, y } = deg2pt(o.cx, o.cy, o.R, deg);
+    const { x, y } = loopPt(o.cx, o.cy, o.rx, o.ry, deg, o.taper ?? 0);
     pieces.push({ family: p.family, x, y, r: p.r });
     cursor += p.weight;
   }
   return pieces;
 }
 
+/** Closed SVG path tracing the (possibly tapered) loop the thread follows. */
+function loopPath(o: { cx: number; cy: number; rx: number; ry: number; taper?: number }): string {
+  const N = 72;
+  let d = '';
+  for (let i = 0; i <= N; i++) {
+    const { x, y } = loopPt(o.cx, o.cy, o.rx, o.ry, (i / N) * 360, o.taper ?? 0);
+    d += `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)} `;
+  }
+  return `${d}Z`;
+}
+
 function rep<T>(n: number, v: T): T[] {
   return Array.from({ length: n }, () => v);
 }
 
-// Bead radii — pulsera beads sit larger; the rosary packs many more.
-const MARIA_R = 8;
-const JESUS_R = 11;
-const MARIA_R_SM = 6.5;
-const JESUS_R_SM = 9.5;
+// Bead radii.
+const MARIA_R = 6.8;
+const JESUS_R = 9.8;
 
-// ── Pulsera: a loop of two sides, each 5 pepas · 1 Jesús · 5 pepas ──
-const P_CX = 200;
-const P_CY = 235;
-const P_R = 132;
-const pulseraSide = (): ArcStep[] => [
-  ...rep(5, { family: 'maria' as Family, r: MARIA_R, weight: 1 }),
-  { family: 'jesus', r: JESUS_R, weight: 1.4 },
-  ...rep(5, { family: 'maria' as Family, r: MARIA_R, weight: 1 }),
-];
-const PULSERA_PIECES: Piece[] = [
-  ...layoutArc(pulseraSide(), { cx: P_CX, cy: P_CY, R: P_R, startDeg: 243, endDeg: 98 }),
-  ...layoutArc(pulseraSide(), { cx: P_CX, cy: P_CY, R: P_R, startDeg: 297, endDeg: 442 }),
-];
-const P_CORD_L = deg2pt(P_CX, P_CY, P_R, 243);
-const P_CORD_R = deg2pt(P_CX, P_CY, P_R, 297);
-
-// ── Collar (rosario): 5 decenas, cada una 1 Jesús + 10 pepas, en un aro ──
-const C_CX = 200;
-const C_CY = 220;
-const C_R = 172;
-const collarLoop = (): ArcStep[] => {
+/** Five decades: each = 1 Jesús intersection pepa + 10 Sagrada María pepas. */
+function rosaryLoop(): ArcStep[] {
   const out: ArcStep[] = [];
   for (let d = 0; d < 5; d++) {
-    out.push({ family: 'jesus', r: JESUS_R_SM, weight: 1.6 });
-    out.push(...rep(10, { family: 'maria' as Family, r: MARIA_R_SM, weight: 1 }));
+    out.push({ family: 'jesus', r: JESUS_R, weight: 1.55 });
+    out.push(...rep(10, { family: 'maria' as Family, r: MARIA_R, weight: 1 }));
   }
   return out;
-};
-const COLLAR_LOOP_PIECES = layoutArc(collarLoop(), {
+}
+
+// ── Pulsera: a full ellipse of pepas (knot hidden at the back), medal below ──
+const P_CX = 200;
+const P_CY = 196;
+const P_RX = 142;
+const P_RY = 150;
+const PULSERA_PIECES: Piece[] = layoutLoop(rosaryLoop(), {
+  cx: P_CX,
+  cy: P_CY,
+  rx: P_RX,
+  ry: P_RY,
+  startDeg: 108,
+  endDeg: 432,
+});
+const P_LOOP = loopPath({ cx: P_CX, cy: P_CY, rx: P_RX, ry: P_RY });
+const P_MEDAL_Y = P_CY + P_RY; // bottom of the loop — medal hangs here
+
+// ── Collar (rosario): a taller, teardrop ellipse + centerpiece + pendant ──
+const C_CX = 200;
+const C_CY = 205;
+const C_RX = 140;
+const C_RY = 178;
+const C_TAPER = 0.22;
+const COLLAR_LOOP_PIECES = layoutLoop(rosaryLoop(), {
   cx: C_CX,
   cy: C_CY,
-  R: C_R,
+  rx: C_RX,
+  ry: C_RY,
   startDeg: 106,
   endDeg: 434,
+  taper: C_TAPER,
 });
-const C_MEDAL = { x: C_CX, y: C_CY + C_R }; // bottom of the loop
+const C_LOOP = loopPath({ cx: C_CX, cy: C_CY, rx: C_RX, ry: C_RY, taper: C_TAPER });
+const C_MEDAL = loopPt(C_CX, C_CY, C_RX, C_RY, 90, C_TAPER); // bottom of the loop
 // Pendant drop: 1 Jesús · 3 pepas · 1 Jesús · cross
 const C_PENDANT: Piece[] = [
-  { family: 'jesus', x: C_CX, y: 422, r: JESUS_R_SM },
-  { family: 'maria', x: C_CX, y: 448, r: MARIA_R_SM },
-  { family: 'maria', x: C_CX, y: 471, r: MARIA_R_SM },
-  { family: 'maria', x: C_CX, y: 494, r: MARIA_R_SM },
-  { family: 'jesus', x: C_CX, y: 520, r: JESUS_R_SM },
+  { family: 'jesus', x: C_CX, y: C_MEDAL.y + 35, r: JESUS_R },
+  { family: 'maria', x: C_CX, y: C_MEDAL.y + 61, r: MARIA_R },
+  { family: 'maria', x: C_CX, y: C_MEDAL.y + 84, r: MARIA_R },
+  { family: 'maria', x: C_CX, y: C_MEDAL.y + 107, r: MARIA_R },
+  { family: 'jesus', x: C_CX, y: C_MEDAL.y + 133, r: JESUS_R },
 ];
-const C_CROSS_Y = 550;
+const C_CROSS_Y = C_MEDAL.y + 163;
 
 // ───────────────────────── Shared SVG bits ─────────────────────────
 
@@ -256,46 +289,15 @@ function PulseraCanvas({
 }) {
   return (
     <svg
-      viewBox="0 0 400 470"
+      viewBox="0 0 400 460"
       className="h-auto w-full drop-shadow-[0_18px_40px_rgba(30,58,138,0.18)]"
       role="img"
       aria-label="Vista previa de tu pulsera personalizada"
     >
       <SvgDefs />
 
-      {/* Connecting thread around the loop */}
-      <path
-        d={`M ${P_CORD_L.x} ${P_CORD_L.y} A ${P_R} ${P_R} 0 1 0 ${P_CORD_R.x} ${P_CORD_R.y}`}
-        fill="none"
-        stroke={cordHex}
-        strokeWidth={2.2}
-        strokeLinecap="round"
-        opacity={0.95}
-      />
-
-      {/* Adjustable dual-strand cord with sliding knot */}
-      <g>
-        <path
-          d={`M ${P_CORD_L.x} ${P_CORD_L.y} C 152 82, 172 62, 206 55 S 242 48, 252 44`}
-          fill="none"
-          stroke={cordHex}
-          strokeWidth={3.4}
-          strokeLinecap="round"
-        />
-        <path
-          d={`M ${P_CORD_R.x} ${P_CORD_R.y} C 248 82, 228 62, 194 55 S 158 48, 148 44`}
-          fill="none"
-          stroke={cordHex}
-          strokeWidth={3.4}
-          strokeLinecap="round"
-        />
-        <rect x={190} y={47} width={20} height={15} rx={6} fill={cordHex} stroke="rgba(0,0,0,0.18)" strokeWidth={0.8} />
-        <line x1={195} y1={49} x2={195} y2={61} stroke="rgba(0,0,0,0.15)" strokeWidth={1.2} />
-        <line x1={200} y1={48} x2={200} y2={62} stroke="rgba(0,0,0,0.15)" strokeWidth={1.2} />
-        <line x1={205} y1={49} x2={205} y2={61} stroke="rgba(0,0,0,0.15)" strokeWidth={1.2} />
-        <circle cx={254} cy={43} r={3.2} fill={cordHex} />
-        <circle cx={146} cy={43} r={3.2} fill={cordHex} />
-      </g>
+      {/* Thread around the full loop — the knot sits hidden at the back */}
+      <path d={P_LOOP} fill="none" stroke={cordHex} strokeWidth={2.4} strokeLinecap="round" opacity={0.95} />
 
       {/* Pepas — re-staggers when colors change */}
       <g key={`${maria.hex}-${jesus.hex}`}>
@@ -304,11 +306,10 @@ function PulseraCanvas({
 
       {/* Virgen Milagrosa + dangling crucifix */}
       <g>
-        <circle cx={P_CX} cy={362} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
-        <VirgenCharm cx={P_CX} cy={374} />
-        <circle cx={P_CX} cy={394} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
-        <circle cx={P_CX} cy={400} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
-        <CrossCharm x={P_CX} y={404} />
+        <circle cx={P_CX} cy={P_MEDAL_Y} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
+        <VirgenCharm cx={P_CX} cy={P_MEDAL_Y + 18} />
+        <circle cx={P_CX} cy={P_MEDAL_Y + 38} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
+        <CrossCharm x={P_CX} y={P_MEDAL_Y + 44} />
       </g>
     </svg>
   );
@@ -327,7 +328,7 @@ function CollarCanvas({
 }) {
   return (
     <svg
-      viewBox="0 0 400 640"
+      viewBox="0 0 400 605"
       className="h-auto w-full drop-shadow-[0_18px_40px_rgba(30,58,138,0.18)]"
       role="img"
       aria-label="Vista previa de tu collar personalizado"
@@ -335,7 +336,7 @@ function CollarCanvas({
       <SvgDefs />
 
       {/* The looped thread + pendant strand (fixed color) */}
-      <circle cx={C_CX} cy={C_CY} r={C_R} fill="none" stroke={cordHex} strokeWidth={2.2} opacity={0.95} />
+      <path d={C_LOOP} fill="none" stroke={cordHex} strokeWidth={2.2} opacity={0.95} />
       <line
         x1={C_CX}
         y1={C_MEDAL.y}
