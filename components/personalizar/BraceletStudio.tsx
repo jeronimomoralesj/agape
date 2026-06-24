@@ -289,7 +289,7 @@ function PulseraCanvas({
 }) {
   return (
     <svg
-      viewBox="0 0 400 460"
+      viewBox="0 0 400 472"
       className="h-auto w-full drop-shadow-[0_18px_40px_rgba(30,58,138,0.18)]"
       role="img"
       aria-label="Vista previa de tu pulsera personalizada"
@@ -304,12 +304,19 @@ function PulseraCanvas({
         <Beads pieces={PULSERA_PIECES} maria={maria} jesus={jesus} />
       </g>
 
-      {/* Virgen Milagrosa + dangling crucifix */}
+      {/* Virgen Milagrosa · Jesús pepa · dangling crucifix */}
       <g>
         <circle cx={P_CX} cy={P_MEDAL_Y} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
         <VirgenCharm cx={P_CX} cy={P_MEDAL_Y + 18} />
-        <circle cx={P_CX} cy={P_MEDAL_Y + 38} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
-        <CrossCharm x={P_CX} y={P_MEDAL_Y + 44} />
+        <circle cx={P_CX} cy={P_MEDAL_Y + 35} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
+        <Bead
+          piece={{ family: 'jesus', x: P_CX, y: P_MEDAL_Y + 49, r: JESUS_R }}
+          hex={jesus.hex}
+          light={jesus.light}
+          index={0}
+        />
+        <circle cx={P_CX} cy={P_MEDAL_Y + 63} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
+        <CrossCharm x={P_CX} y={P_MEDAL_Y + 69} />
       </g>
     </svg>
   );
