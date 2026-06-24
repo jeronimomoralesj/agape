@@ -34,12 +34,12 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-[75vh] items-center justify-center px-6 py-16">
+    <div className="flex min-h-[75vh] items-center justify-center px-4 py-16 sm:px-6">
       <motion.div
         initial={{ opacity: 0, y: 28 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md rounded-3xl border border-oro/20 bg-white/80 p-10 shadow-luxe backdrop-blur-sm"
+        className="w-full max-w-md rounded-3xl border border-oro/20 bg-white/80 p-7 shadow-luxe backdrop-blur-sm sm:p-10"
       >
         <div className="flex flex-col items-center text-center">
           <span className="font-logo text-5xl tracking-wide text-royal">ÁGAPE</span>

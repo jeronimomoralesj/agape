@@ -225,7 +225,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl px-6 pb-24 pt-12 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 sm:pt-12 lg:px-8">
       {/* 🎰 Random cinematic welcome (Star Wars / BTTF / Spider-Man / Batman / Jurassic / Flamenco) */}
       <AdminIntro />
 
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="section-eyebrow">Panel de administración</p>
-          <h1 className="mt-2 font-serif text-4xl font-bold text-royal">Ágape Admin</h1>
+          <h1 className="mt-2 font-serif text-3xl font-bold text-royal sm:text-4xl">Ágape Admin</h1>
         </div>
         <button
           type="button"
@@ -245,30 +245,32 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="mt-8 flex gap-2 rounded-full border border-oro/20 bg-white/60 p-1.5 sm:w-fit">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={`relative flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors sm:flex-initial ${
-              tab === t.key ? 'text-royal-ink' : 'text-royal/55 hover:text-royal'
-            }`}
-          >
-            {tab === t.key && (
-              <motion.span
-                layoutId="admin-tab-pill"
-                transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                className="absolute inset-0 rounded-full bg-gradient-to-r from-oro-light to-oro"
-              />
-            )}
-            <span className="relative flex items-center gap-2">
-              {t.icon}
-              {t.label}
-            </span>
-          </button>
-        ))}
+      {/* Tabs — horizontally scrollable on mobile, centered pill from sm up */}
+      <div className="mt-8 -mx-4 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:overflow-x-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+        <div className="flex w-max gap-2 rounded-full border border-oro/20 bg-white/60 p-1.5 sm:w-fit">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              className={`relative flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-colors sm:px-5 ${
+                tab === t.key ? 'text-royal-ink' : 'text-royal/55 hover:text-royal'
+              }`}
+            >
+              {tab === t.key && (
+                <motion.span
+                  layoutId="admin-tab-pill"
+                  transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-oro-light to-oro"
+                />
+              )}
+              <span className="relative flex items-center gap-2">
+                {t.icon}
+                {t.label}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (
@@ -480,14 +482,16 @@ export default function AdminDashboard() {
                               />
                             </span>
                             <div className="min-w-0 flex-1">
-                              <p className="truncate font-semibold text-royal">
-                                {product.title}
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <p className="min-w-0 max-w-full truncate font-semibold text-royal">
+                                  {product.title}
+                                </p>
                                 {!product.isActive && (
-                                  <span className="ml-2 rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">
+                                  <span className="rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">
                                     Oculto
                                   </span>
                                 )}
-                              </p>
+                              </div>
                               <p className="flex flex-wrap items-center gap-x-1 text-xs text-royal/55">
                                 {formatPrice(product.price)}
                                 {(product.discount ?? 0) > 0 && (
@@ -627,10 +631,12 @@ export default function AdminDashboard() {
                               }}
                             />
                             <div className="min-w-0 flex-1">
-                              <p className="truncate font-semibold text-royal">
-                                {pepa.name}
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <p className="min-w-0 max-w-full truncate font-semibold text-royal">
+                                  {pepa.name}
+                                </p>
                                 <span
-                                  className={`ml-2 rounded-full px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider ${
+                                  className={`rounded-full px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider ${
                                     pepa.kind === 'jesus'
                                       ? 'bg-oro/15 text-oro-deep'
                                       : 'bg-cielo-100 text-royal/60'
@@ -639,16 +645,16 @@ export default function AdminDashboard() {
                                   {pepa.kind === 'jesus' ? 'Padre Nuestro' : 'Ave María'}
                                 </span>
                                 {!pepa.isActive && (
-                                  <span className="ml-2 rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">
+                                  <span className="rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">
                                     Oculto
                                   </span>
                                 )}
                                 {pepa.stock === 0 && (
-                                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-amber-700">
+                                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-amber-700">
                                     Agotado
                                   </span>
                                 )}
-                              </p>
+                              </div>
                               <p className="flex flex-wrap items-center gap-x-2 text-xs text-royal/55">
                                 <span className="font-mono uppercase">{pepa.hex}</span>
                                 <span>·</span>
@@ -748,14 +754,16 @@ export default function AdminDashboard() {
                               )}
                             </span>
                             <div className="min-w-0 flex-1">
-                              <p className="truncate font-semibold text-royal">
-                                {post.title}
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <p className="min-w-0 max-w-full truncate font-semibold text-royal">
+                                  {post.title}
+                                </p>
                                 {!post.isPublished && (
-                                  <span className="ml-2 rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">
+                                  <span className="rounded-full bg-royal/10 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-royal/60">
                                     Borrador
                                   </span>
                                 )}
-                              </p>
+                              </div>
                               <p className="text-xs text-royal/55">
                                 {new Date(post.createdAt).toLocaleDateString('es-CO', {
                                   day: 'numeric',
