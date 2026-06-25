@@ -7,6 +7,8 @@ import {
   customProductId,
   customTitle,
   findCord,
+  findDije,
+  DEFAULT_DIJE_ID,
   type ProductType,
 } from '@/lib/customBracelet';
 import { getPepas } from '@/lib/pepas';
@@ -73,6 +75,9 @@ export async function POST(request: NextRequest) {
       const jesusId: string | undefined =
         raw.jesusId ?? (Array.isArray(raw.beadIds) ? raw.beadIds[1] : undefined) ?? mariaId;
       const cordId: string | undefined = type === 'pulsera' ? raw.cordId : undefined;
+      // Collar centerpiece medal — fall back to the default for legacy carts.
+      const dijeId: string | undefined =
+        type === 'collar' ? (findDije(raw.dijeId)?.id ?? DEFAULT_DIJE_ID) : undefined;
 
       const colorsOk = !!mariaId && !!jesusId && pepaMap.has(mariaId) && pepaMap.has(jesusId);
       const cordOk = type === 'collar' || !!findCord(cordId);
@@ -84,7 +89,7 @@ export async function POST(request: NextRequest) {
       }
 
       const quantity = Math.max(1, Math.min(Number(item.quantity) || 1, 10));
-      const config = { type, mariaId: mariaId!, jesusId: jesusId!, cordId };
+      const config = { type, mariaId: mariaId!, jesusId: jesusId!, cordId, dijeId };
       const price = CUSTOM_PRICES[type];
       orderItems.push({
         productId: customProductId(config),

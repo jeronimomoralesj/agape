@@ -26,6 +26,12 @@ export interface CordOption {
   hex: string;
 }
 
+/** Devotional medal (dije) for the collar centerpiece. */
+export interface DijeOption {
+  id: string;
+  name: string;
+}
+
 /** Fixed price per product line — COP, validated server-side. */
 export const CUSTOM_PRICES: Record<ProductType, number> = {
   pulsera: 22000,
@@ -76,6 +82,16 @@ export const COLLAR_CORD: CordOption = {
   hex: '#C9B89A',
 };
 
+/** Centerpiece medals the customer can choose for the collar. */
+export const DIJES: DijeOption[] = [
+  { id: 'guadalupe', name: 'Virgen de Guadalupe' },
+  { id: 'milagrosa', name: 'Virgen Milagrosa' },
+  { id: 'san-benito', name: 'San Benito de Nursia' },
+];
+
+/** Default centerpiece when a collar config omits one (legacy carts). */
+export const DEFAULT_DIJE_ID = DIJES[0].id;
+
 export const GOLD = '#D4AF37';
 export const GOLD_LIGHT = '#E8CD6F';
 export const GOLD_DEEP = '#A8862A';
@@ -89,6 +105,8 @@ export interface CustomConfig {
   jesusId: string;
   /** Cord color — only meaningful for the pulsera */
   cordId?: string;
+  /** Centerpiece medal — only meaningful for the collar */
+  dijeId?: string;
 }
 
 export function findBead(id: string): BeadOption | undefined {
@@ -99,6 +117,10 @@ export function findCord(id: string | undefined): CordOption | undefined {
   if (id === COLLAR_CORD.id) return COLLAR_CORD;
   return CORDS.find((c) => c.id === id);
 }
+export function findDije(id: string | undefined): DijeOption | undefined {
+  if (!id) return undefined;
+  return DIJES.find((d) => d.id === id);
+}
 
 /** Resolve the cord a config should render with (collar is always fixed). */
 export function configCord(config: CustomConfig): CordOption {
@@ -106,8 +128,16 @@ export function configCord(config: CustomConfig): CordOption {
   return findCord(config.cordId) ?? CORDS[0];
 }
 
+/** Resolve the centerpiece medal a collar config should render with. */
+export function configDije(config: CustomConfig): DijeOption {
+  return findDije(config.dijeId) ?? DIJES[0];
+}
+
 export function customProductId(config: CustomConfig): string {
-  const cord = config.type === 'collar' ? COLLAR_CORD.id : config.cordId ?? '';
+  if (config.type === 'collar') {
+    return `custom-collar-${config.mariaId}.${config.jesusId}-${configDije(config).id}`;
+  }
+  const cord = config.cordId ?? '';
   return `custom-${config.type}-${config.mariaId}.${config.jesusId}-${cord}`;
 }
 
@@ -121,7 +151,7 @@ export function customTitle(
   const jesus = resolveBead(config.jesusId)?.name ?? '';
   const noun = config.type === 'collar' ? 'Collar Personalizado' : 'Pulsera Personalizada';
   const pepas = `Pepas Ave María ${maria} · Padre Nuestro ${jesus}`;
-  if (config.type === 'collar') return `${noun} — ${pepas}`;
+  if (config.type === 'collar') return `${noun} — ${pepas} · Dije ${configDije(config).name}`;
   const cord = configCord(config);
   return `${noun} — ${pepas} · Cordón ${cord.name}`;
 }

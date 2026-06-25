@@ -9,6 +9,7 @@ import {
   BEADS,
   CORDS,
   COLLAR_CORD,
+  DIJES,
   CUSTOM_PRICES,
   PRODUCT_LABELS,
   customTitle,
@@ -16,7 +17,7 @@ import {
   type CustomConfig,
   type ProductType,
 } from '@/lib/customBracelet';
-import { PulseraPreview, CollarPreview } from './pulseraArt';
+import { PulseraPreview, CollarPreview, DijeSwatch } from './pulseraArt';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -169,6 +170,7 @@ export default function BraceletStudio() {
   const [mariaId, setMariaId] = useState('champana');
   const [jesusId, setJesusId] = useState('esmeralda-jesus');
   const [cordId, setCordId] = useState('crema');
+  const [dijeId, setDijeId] = useState(DIJES[0].id);
   const [openStep, setOpenStep] = useState(1);
   const [added, setAdded] = useState(false);
 
@@ -233,10 +235,13 @@ export default function BraceletStudio() {
   const maria = { hex: mariaBead?.hex ?? '#EBD4BE', light: !!mariaBead?.light };
   const jesus = { hex: jesusBead?.hex ?? '#732911', light: !!jesusBead?.light };
 
-  // Step numbering shifts because the collar has no cord step.
+  // Step numbering shifts: the pulsera has a cord step, the collar a dije step.
   const showCord = productType === 'pulsera';
+  const showDije = productType === 'collar';
   const stepMaria = showCord ? 2 : 1;
   const stepJesus = showCord ? 3 : 2;
+  const stepDije = 3; // collar only
+  const dije = useMemo(() => DIJES.find((d) => d.id === dijeId), [dijeId]);
 
   const handleAdd = () => {
     const config: CustomConfig = {
@@ -244,6 +249,7 @@ export default function BraceletStudio() {
       mariaId,
       jesusId,
       cordId: showCord ? cordId : undefined,
+      dijeId: showDije ? dijeId : undefined,
     };
     addCustomItem(config, {
       title: customTitle(config, (id) => palette.find((b) => b.id === id)),
@@ -264,7 +270,7 @@ export default function BraceletStudio() {
         <div className="rounded-3xl border border-oro/20 bg-gradient-to-b from-white/90 to-cielo-100/80 p-3 shadow-luxe backdrop-blur-md sm:rounded-[2rem] sm:p-8">
           <div className="mx-auto max-w-[170px] sm:max-w-[280px] lg:max-w-sm">
             {productType === 'collar' ? (
-              <CollarPreview maria={maria} jesus={jesus} cordHex={cord.hex} />
+              <CollarPreview maria={maria} jesus={jesus} cordHex={cord.hex} dijeId={dijeId} />
             ) : (
               <PulseraPreview maria={maria} jesus={jesus} cordHex={cord.hex} />
             )}
@@ -294,7 +300,7 @@ export default function BraceletStudio() {
             </div>
             <p className="mt-1.5 truncate px-2 text-[0.65rem] text-royal/55 sm:text-xs">
               {productType === 'collar'
-                ? `${COLLAR_CORD.name} · Rosario con crucifijo`
+                ? `${COLLAR_CORD.name} · Dije ${dije?.name ?? ''}`
                 : `Cordón ${cord.name} · Virgen Milagrosa`}
             </p>
           </div>
@@ -405,6 +411,57 @@ export default function BraceletStudio() {
           <ColorGrid options={jesusOptions} selectedId={jesusId} onSelect={setJesusId} />
         </Step>
 
+        {/* Step — Dije (collar only) */}
+        {showDije && (
+          <Step
+            number={stepDije}
+            title="Dije · Medalla"
+            summary={dije?.name ?? 'Elige una medalla'}
+            open={openStep === stepDije}
+            onToggle={() => setOpenStep(openStep === stepDije ? 0 : stepDije)}
+          >
+            <p className="mb-4 text-xs text-royal/55">
+              La medalla central de tu collar. Bañada en oro.
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {DIJES.map((option) => {
+                const selected = dijeId === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setDijeId(option.id)}
+                    aria-pressed={selected}
+                    className="group flex flex-col items-center gap-2"
+                  >
+                    <span
+                      className={`relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-b from-white to-cielo-100/70 p-1.5 transition-all duration-300 ${
+                        selected
+                          ? 'ring-2 ring-oro ring-offset-2 ring-offset-white shadow-aura-soft'
+                          : 'ring-1 ring-royal/10 group-hover:ring-oro/50'
+                      }`}
+                    >
+                      <DijeSwatch id={option.id} />
+                      {selected && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-oro text-royal-ink shadow-aura-soft"
+                        >
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                        </motion.span>
+                      )}
+                    </span>
+                    <span className="text-center text-[0.65rem] font-medium leading-tight text-royal/70">
+                      {option.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </Step>
+        )}
+
         {/* Price + CTA */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -437,7 +494,7 @@ export default function BraceletStudio() {
           </motion.div>
           <p className="mt-3 text-center text-xs text-royal/50">
             {productType === 'collar'
-              ? 'Rosario con Ave María y crucifijo · Hecho a mano · Envíos a toda Colombia'
+              ? `Rosario con dije ${dije?.name ?? ''} y crucifijo · Hecho a mano · Envíos a toda Colombia`
               : 'Con Virgen Milagrosa y crucifijo · Hecha a mano · Envíos a toda Colombia'}
           </p>
         </motion.div>

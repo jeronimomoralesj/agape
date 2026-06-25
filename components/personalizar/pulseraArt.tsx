@@ -274,19 +274,202 @@ function VirgenCharm({ cx, cy }: { cx: number; cy: number }) {
   );
 }
 
-/** Round "Ave María" centerpiece medal (collar). */
-function MedalRound({ x, y, r = 18 }: { x: number; y: number; r?: number }) {
+// ───────────────────────── Collar dijes (medals) ─────────────────────────
+
+const DIJE_R = 19;
+
+/** Gold disc base shared by every collar medal. */
+function MedalDisc({ x, y, r = DIJE_R }: { x: number; y: number; r?: number }) {
+  return (
+    <>
+      <circle cx={x} cy={y} r={r} fill="url(#goldGradient)" stroke={GOLD_DEEP} strokeWidth={1.2} />
+      <circle cx={x} cy={y} r={r - 3} fill="none" stroke={GOLD_DEEP} strokeWidth={0.7} opacity={0.5} />
+    </>
+  );
+}
+
+/** Virgen de Guadalupe — full figure inside a radiant mandorla. */
+function DijeGuadalupe({ x, y }: { x: number; y: number }) {
+  const r = DIJE_R;
   return (
     <g>
-      <circle cx={x} cy={y} r={r} fill="url(#goldGradient)" stroke={GOLD_DEEP} strokeWidth={1.2} />
-      <circle cx={x} cy={y} r={r - 4} fill="none" stroke={GOLD_DEEP} strokeWidth={0.9} opacity={0.6} />
-      <circle cx={x} cy={y - 4.5} r={2.6} fill={GOLD_DEEP} opacity={0.8} />
+      {/* Mandorla of rays all around */}
+      {Array.from({ length: 28 }).map((_, i) => {
+        const a = (i / 28) * Math.PI * 2;
+        const long = i % 2 === 0;
+        return (
+          <line
+            key={i}
+            x1={x + r * Math.cos(a)}
+            y1={y + r * Math.sin(a)}
+            x2={x + (r + (long ? 6 : 3.5)) * Math.cos(a)}
+            y2={y + (r + (long ? 6 : 3.5)) * Math.sin(a)}
+            stroke={GOLD}
+            strokeWidth={long ? 1.8 : 1}
+            strokeLinecap="round"
+            opacity={0.85}
+          />
+        );
+      })}
+      <MedalDisc x={x} y={y} />
+      {/* Mantle (cloak) tapering to the hem */}
       <path
-        d={`M${x},${y - 2} c-3,2.4 -4,6 -4,9.5 q4,2.6 8,0 c0,-3.5 -1,-7.1 -4,-9.5 Z`}
+        d={`M${x},${y - 12}
+            C ${x - 7.5},${y - 6} ${x - 8.5},${y + 7} ${x - 6.5},${y + 12}
+            L ${x + 6.5},${y + 12}
+            C ${x + 8.5},${y + 7} ${x + 7.5},${y - 6} ${x},${y - 12} Z`}
         fill={GOLD_DEEP}
-        opacity={0.75}
+        opacity={0.82}
+      />
+      {/* Inner robe */}
+      <path
+        d={`M${x},${y - 7} C ${x - 3.5},${y - 4} ${x - 4},${y + 6} ${x - 3},${y + 11}
+            L ${x + 3},${y + 11} C ${x + 4},${y + 6} ${x + 3.5},${y - 4} ${x},${y - 7} Z`}
+        fill="url(#goldGradient)"
+        opacity={0.9}
+      />
+      {/* Bowed, veiled head */}
+      <circle cx={x} cy={y - 9} r={3.1} fill="url(#goldGradient)" stroke={GOLD_DEEP} strokeWidth={0.6} />
+      <path d={`M${x - 3.2},${y - 9} a3.2,3.6 0 0 1 6.4,0`} fill="none" stroke={GOLD_DEEP} strokeWidth={0.8} />
+      {/* Joined hands in prayer */}
+      <path d={`M${x},${y - 4.5} l-1.8,4.5 l1.8,1.4 l1.8,-1.4 Z`} fill={GOLD_DEEP} opacity={0.85} />
+    </g>
+  );
+}
+
+/** Virgen Milagrosa — standing figure with grace radiating from the hands. */
+function DijeMilagrosa({ x, y }: { x: number; y: number }) {
+  const r = DIJE_R;
+  return (
+    <g>
+      <MedalDisc x={x} y={y} />
+      {/* Twelve stars around the inner rim */}
+      {Array.from({ length: 12 }).map((_, i) => {
+        const a = (i / 12) * Math.PI * 2 - Math.PI / 2;
+        return (
+          <circle
+            key={i}
+            cx={x + (r - 5) * Math.cos(a)}
+            cy={y + (r - 5) * Math.sin(a)}
+            r={0.9}
+            fill={GOLD_DEEP}
+            opacity={0.7}
+          />
+        );
+      })}
+      {/* Rays of grace from the outstretched hands */}
+      {[-1, 1].map((side) =>
+        [0, 1, 2].map((j) => {
+          const sx = x + side * 4.5;
+          const sy = y - 1;
+          const ang = (side * (28 + j * 18) * Math.PI) / 180;
+          return (
+            <line
+              key={`${side}-${j}`}
+              x1={sx}
+              y1={sy}
+              x2={sx + Math.sin(ang) * 9}
+              y2={sy + Math.cos(ang) * 9}
+              stroke={GOLD_DEEP}
+              strokeWidth={0.9}
+              strokeLinecap="round"
+              opacity={0.6}
+            />
+          );
+        })
+      )}
+      {/* Head with veil */}
+      <circle cx={x} cy={y - 8.5} r={2.8} fill="url(#goldGradient)" stroke={GOLD_DEEP} strokeWidth={0.6} />
+      {/* Robe + slightly outstretched arms */}
+      <path
+        d={`M${x},${y - 5.5}
+            C ${x - 4.5},${y - 4} ${x - 5},${y - 1} ${x - 6},${y + 1}
+            M${x},${y - 5.5}
+            C ${x + 4.5},${y - 4} ${x + 5},${y - 1} ${x + 6},${y + 1}`}
+        fill="none"
+        stroke={GOLD_DEEP}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        opacity={0.85}
+      />
+      <path
+        d={`M${x},${y - 6} C ${x - 4},${y - 2} ${x - 4.5},${y + 7} ${x - 3.5},${y + 11.5}
+            L ${x + 3.5},${y + 11.5} C ${x + 4.5},${y + 7} ${x + 4},${y - 2} ${x},${y - 6} Z`}
+        fill={GOLD_DEEP}
+        opacity={0.82}
       />
     </g>
+  );
+}
+
+/** San Benito de Nursia — the Cross of St. Benedict with C·S·P·B in the quarters. */
+function DijeSanBenito({ x, y }: { x: number; y: number }) {
+  const r = DIJE_R;
+  const arm = r - 5.5;
+  return (
+    <g>
+      <MedalDisc x={x} y={y} />
+      {/* Beaded rim */}
+      {Array.from({ length: 30 }).map((_, i) => {
+        const a = (i / 30) * Math.PI * 2;
+        return (
+          <circle
+            key={i}
+            cx={x + (r - 1.5) * Math.cos(a)}
+            cy={y + (r - 1.5) * Math.sin(a)}
+            r={0.6}
+            fill={GOLD_DEEP}
+            opacity={0.55}
+          />
+        );
+      })}
+      {/* Bold cross */}
+      <rect x={x - 1.7} y={y - arm} width={3.4} height={arm * 2} rx={1.1} fill={GOLD_DEEP} />
+      <rect x={x - arm} y={y - 1.7} width={arm * 2} height={3.4} rx={1.1} fill={GOLD_DEEP} />
+      <circle cx={x} cy={y} r={2.6} fill="url(#goldGradient)" stroke={GOLD_DEEP} strokeWidth={0.7} />
+      {/* C · S · P · B in the quadrants */}
+      {(
+        [
+          ['C', -1, -1],
+          ['S', 1, -1],
+          ['P', -1, 1],
+          ['B', 1, 1],
+        ] as const
+      ).map(([ch, sx, sy]) => (
+        <text
+          key={ch}
+          x={x + sx * 7.5}
+          y={y + sy * 7.5 + 2}
+          textAnchor="middle"
+          fontSize={5}
+          fontWeight={700}
+          fontFamily="Georgia, 'Times New Roman', serif"
+          fill={GOLD_DEEP}
+          opacity={0.85}
+        >
+          {ch}
+        </text>
+      ))}
+    </g>
+  );
+}
+
+export type DijeId = 'guadalupe' | 'milagrosa' | 'san-benito';
+
+/** Render the chosen collar centerpiece medal. */
+function DijeMedal({ id, x, y }: { id: string; x: number; y: number }) {
+  if (id === 'milagrosa') return <DijeMilagrosa x={x} y={y} />;
+  if (id === 'san-benito') return <DijeSanBenito x={x} y={y} />;
+  return <DijeGuadalupe x={x} y={y} />;
+}
+
+/** Standalone medal swatch for the dije picker. */
+export function DijeSwatch({ id }: { id: string }) {
+  return (
+    <svg viewBox="0 0 56 56" className="h-full w-full" role="img" aria-hidden="true">
+      <SvgDefs />
+      <DijeMedal id={id} x={28} y={28} />
+    </svg>
   );
 }
 
@@ -337,11 +520,13 @@ export function CollarPreview({
   maria,
   jesus,
   cordHex,
+  dijeId = 'guadalupe',
   animate = true,
 }: {
   maria: PepaPaint;
   jesus: PepaPaint;
   cordHex: string;
+  dijeId?: string;
   animate?: boolean;
 }) {
   return (
@@ -378,8 +563,8 @@ export function CollarPreview({
         />
       </g>
 
-      {/* Centerpiece medal (Ave María) + crucifix */}
-      <MedalRound x={C_MEDAL.x} y={C_MEDAL.y} />
+      {/* Centerpiece medal (customer's chosen dije) + crucifix */}
+      <DijeMedal id={dijeId} x={C_MEDAL.x} y={C_MEDAL.y} />
       <CrossCharm x={C_CX} y={C_CROSS_Y} />
     </svg>
   );
