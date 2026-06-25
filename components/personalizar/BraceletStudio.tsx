@@ -300,7 +300,7 @@ export default function BraceletStudio() {
             </div>
             <p className="mt-1.5 truncate px-2 text-[0.65rem] text-royal/55 sm:text-xs">
               {productType === 'collar'
-                ? `${COLLAR_CORD.name} · Dije ${dije?.name ?? ''}`
+                ? `${COLLAR_CORD.name} · Medallas crucero ${dije?.name ?? ''}`
                 : `Cordón ${cord.name} · Virgen Milagrosa`}
             </p>
           </div>
@@ -415,7 +415,7 @@ export default function BraceletStudio() {
         {showDije && (
           <Step
             number={stepDije}
-            title="Dije · Medalla"
+            title="Medallas crucero"
             summary={dije?.name ?? 'Elige una medalla'}
             open={openStep === stepDije}
             onToggle={() => setOpenStep(openStep === stepDije ? 0 : stepDije)}
@@ -494,7 +494,7 @@ export default function BraceletStudio() {
           </motion.div>
           <p className="mt-3 text-center text-xs text-royal/50">
             {productType === 'collar'
-              ? `Rosario con dije ${dije?.name ?? ''} y crucifijo · Hecho a mano · Envíos a toda Colombia`
+              ? `Rosario con medallas crucero ${dije?.name ?? ''} y crucifijo · Hecho a mano · Envíos a toda Colombia`
               : 'Con Virgen Milagrosa y crucifijo · Hecha a mano · Envíos a toda Colombia'}
           </p>
         </motion.div>

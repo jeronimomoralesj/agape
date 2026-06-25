@@ -151,7 +151,7 @@ export function customTitle(
   const jesus = resolveBead(config.jesusId)?.name ?? '';
   const noun = config.type === 'collar' ? 'Collar Personalizado' : 'Pulsera Personalizada';
   const pepas = `Pepas Ave María ${maria} · Padre Nuestro ${jesus}`;
-  if (config.type === 'collar') return `${noun} — ${pepas} · Dije ${configDije(config).name}`;
+  if (config.type === 'collar') return `${noun} — ${pepas} · Medallas crucero ${configDije(config).name}`;
   const cord = configCord(config);
   return `${noun} — ${pepas} · Cordón ${cord.name}`;
 }
