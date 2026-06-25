@@ -421,7 +421,7 @@ export default function BraceletStudio() {
             onToggle={() => setOpenStep(openStep === stepDije ? 0 : stepDije)}
           >
             <p className="mb-4 text-xs text-royal/55">
-              La medalla central de tu collar. Bañada en oro.
+              La medalla central de tu collar.
             </p>
             <div className="grid grid-cols-3 gap-3">
               {DIJES.map((option) => {
