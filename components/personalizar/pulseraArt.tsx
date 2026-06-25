@@ -104,12 +104,27 @@ function rosaryLoop(): ArcStep[] {
   return out;
 }
 
+/**
+ * Pulsera loop: 5 Ave María groups separated by 4 Padre Nuestro pepas.
+ * Unlike the collar, the pulsera is a near-closed ring, so a leading Padre
+ * Nuestro would sit right beside the trailing group at the top seam and read
+ * as a doubled bead — we drop it, leaving 4 evenly between the groups.
+ */
+function pulseraLoop(): ArcStep[] {
+  const out: ArcStep[] = [];
+  for (let d = 0; d < 5; d++) {
+    if (d > 0) out.push({ family: 'jesus', r: JESUS_R, weight: 1.55 });
+    out.push(...rep(10, { family: 'maria' as Family, r: MARIA_R, weight: 1 }));
+  }
+  return out;
+}
+
 // ── Pulsera: a full ellipse of pepas (knot hidden at the back), medal below ──
 const P_CX = 200;
 const P_CY = 196;
 const P_RX = 142;
 const P_RY = 150;
-const PULSERA_PIECES: Piece[] = layoutLoop(rosaryLoop(), {
+const PULSERA_PIECES: Piece[] = layoutLoop(pulseraLoop(), {
   cx: P_CX,
   cy: P_CY,
   rx: P_RX,
