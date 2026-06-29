@@ -65,12 +65,15 @@ function placeByArcLength(count: number): { x: number; y: number }[] {
   const total = cum[STEPS];
   const out: { x: number; y: number }[] = [];
   for (let b = 0; b < count; b++) {
-    const target = count === 1 ? total / 2 : (total * b) / (count - 1);
-    // Walk the cumulative table to the segment containing `target`.
+    // Clamp to `total` so floating-point drift can't overshoot the last segment.
+    const target =
+      count === 1 ? total / 2 : Math.min((total * b) / (count - 1), total);
+    // Walk the cumulative table to the segment containing `target`. `lo` stays
+    // in [0, STEPS-1] so pts[lo + 1] is always defined.
     let lo = 0;
-    while (lo < STEPS && cum[lo + 1] < target) lo++;
+    while (lo < STEPS - 1 && cum[lo + 1] < target) lo++;
     const segLen = cum[lo + 1] - cum[lo] || 1;
-    const t = (target - cum[lo]) / segLen;
+    const t = Math.min(Math.max((target - cum[lo]) / segLen, 0), 1);
     out.push({
       x: pts[lo].x + (pts[lo + 1].x - pts[lo].x) * t,
       y: pts[lo].y + (pts[lo + 1].y - pts[lo].y) * t,
