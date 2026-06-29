@@ -12,12 +12,14 @@ import {
 import type { CartItem, Product } from '@/lib/types';
 import { finalPrice } from '@/lib/types';
 import {
-  CUSTOM_PRICES,
   configCord,
+  configPrice,
   customCartImage,
   customProductId,
   customTitle,
   findBead,
+  findMetal,
+  nombresCartImage,
   type CustomConfig,
 } from '@/lib/customBracelet';
 
@@ -112,17 +114,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               : item
           );
         }
+        const mariaHex = meta?.mariaHex ?? findBead(config.mariaId)?.hex ?? FALLBACK_BEAD_HEX;
+        const jesusHex = meta?.jesusHex ?? findBead(config.jesusId)?.hex ?? FALLBACK_BEAD_HEX;
+        const image =
+          config.type === 'nombres'
+            ? nombresCartImage(mariaHex, jesusHex, findMetal(config.metalId).hex)
+            : customCartImage(mariaHex, jesusHex, meta?.cordHex ?? configCord(config).hex);
         return [
           ...prev,
           {
             productId,
             title: meta?.title ?? customTitle(config),
-            price: CUSTOM_PRICES[config.type],
-            image: customCartImage(
-              meta?.mariaHex ?? findBead(config.mariaId)?.hex ?? FALLBACK_BEAD_HEX,
-              meta?.jesusHex ?? findBead(config.jesusId)?.hex ?? FALLBACK_BEAD_HEX,
-              meta?.cordHex ?? configCord(config).hex
-            ),
+            price: configPrice(config),
+            image,
             quantity: 1,
             stock: 10, // handmade to order — cap per pedido
             custom: config,

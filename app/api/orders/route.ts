@@ -3,12 +3,16 @@ import { dbConnect } from '@/lib/db';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
 import {
-  CUSTOM_PRICES,
+  configPrice,
   customProductId,
   customTitle,
   findCord,
   findDije,
+  findMetal,
+  sanitizeNames,
   DEFAULT_DIJE_ID,
+  MIN_NAMES,
+  type CustomConfig,
   type ProductType,
 } from '@/lib/customBracelet';
 import { getPepas } from '@/lib/pepas';
@@ -67,7 +71,8 @@ export async function POST(request: NextRequest) {
     // Custom "Crea tu pulsera / collar" items — validated against the live catalog
     for (const item of customItems) {
       const raw = item.custom ?? {};
-      const type: ProductType = raw.type === 'collar' ? 'collar' : 'pulsera';
+      const type: ProductType =
+        raw.type === 'collar' ? 'collar' : raw.type === 'nombres' ? 'nombres' : 'pulsera';
 
       // Resolve the two colors, tolerating legacy single-list carts.
       const legacyFirst = Array.isArray(raw.beadIds) ? raw.beadIds[0] : raw.beadId;
@@ -78,10 +83,14 @@ export async function POST(request: NextRequest) {
       // Collar centerpiece medal — fall back to the default for legacy carts.
       const dijeId: string | undefined =
         type === 'collar' ? (findDije(raw.dijeId)?.id ?? DEFAULT_DIJE_ID) : undefined;
+      // Name necklace — clean the names server-side and pick a valid metal.
+      const names = type === 'nombres' ? sanitizeNames(raw.names) : undefined;
+      const metalId = type === 'nombres' ? findMetal(raw.metalId).id : undefined;
 
       const colorsOk = !!mariaId && !!jesusId && pepaMap.has(mariaId) && pepaMap.has(jesusId);
-      const cordOk = type === 'collar' || !!findCord(cordId);
-      if (!colorsOk || !cordOk) {
+      const cordOk = type !== 'pulsera' || !!findCord(cordId);
+      const namesOk = type !== 'nombres' || (!!names && names.length >= MIN_NAMES);
+      if (!colorsOk || !cordOk || !namesOk) {
         return NextResponse.json(
           { error: 'Configuración personalizada inválida' },
           { status: 400 }
@@ -89,8 +98,16 @@ export async function POST(request: NextRequest) {
       }
 
       const quantity = Math.max(1, Math.min(Number(item.quantity) || 1, 10));
-      const config = { type, mariaId: mariaId!, jesusId: jesusId!, cordId, dijeId };
-      const price = CUSTOM_PRICES[type];
+      const config: CustomConfig = {
+        type,
+        mariaId: mariaId!,
+        jesusId: jesusId!,
+        cordId,
+        dijeId,
+        names,
+        metalId,
+      };
+      const price = configPrice(config);
       orderItems.push({
         productId: customProductId(config),
         title: customTitle(config, (id) => pepaMap.get(id)),
