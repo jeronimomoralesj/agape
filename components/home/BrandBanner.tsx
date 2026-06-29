@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Wand2 } from 'lucide-react';
+import { Sparkles, Wand2 } from 'lucide-react';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -49,7 +49,7 @@ export default function BrandBanner() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE, delay: 0.32 }}
-          className="mt-7"
+          className="mt-7 flex flex-wrap items-center justify-center gap-3"
         >
           <Link
             href="/personalizar"
@@ -57,6 +57,13 @@ export default function BrandBanner() {
           >
             <Wand2 className="h-3.5 w-3.5" />
             Diseña tu propia pulsera
+          </Link>
+          <Link
+            href="/collar-nombres"
+            className="inline-flex items-center gap-2 rounded-full border border-oro/50 px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-oro-deep transition-all duration-300 hover:bg-oro/10 hover:shadow-aura-soft"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Crea tu collar de nombres
           </Link>
         </motion.div>
 
