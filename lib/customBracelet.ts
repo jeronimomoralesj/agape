@@ -46,9 +46,8 @@ export const MIN_NAMES = 1;
 export const MAX_NAMES = 5;
 export const MAX_NAME_LEN = 10;
 
-/** Base price (1 name) + each additional name — COP, validated server-side. */
-export const NOMBRES_BASE_PRICE = 42000;
-export const NOMBRES_PER_NAME = 14000;
+/** Flat price — same regardless of how many names. COP, validated server-side. */
+export const NOMBRES_BASE_PRICE = 35000;
 
 /** Metallic seed-bead finishes for the name necklace (not from pepa stock). */
 export const METALS: MetalOption[] = [
@@ -161,10 +160,9 @@ export function sanitizeNames(names: unknown): string[] {
     .slice(0, MAX_NAMES);
 }
 
-/** Price of a name necklace — scales with how many names are engraved. */
-export function nombresPrice(names: unknown): number {
-  const n = Math.max(MIN_NAMES, sanitizeNames(names).length || MIN_NAMES);
-  return NOMBRES_BASE_PRICE + (n - 1) * NOMBRES_PER_NAME;
+/** Price of a name necklace — flat, regardless of how many names. */
+export function nombresPrice(_names?: unknown): number {
+  return NOMBRES_BASE_PRICE;
 }
 
 /** Resolve the COP price for any custom config (server-validated). */
