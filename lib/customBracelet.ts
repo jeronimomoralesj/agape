@@ -245,29 +245,31 @@ export function customCartImage(
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
-/** Tiny inline SVG thumbnail for a name necklace (letter beads + accents). */
+/** Tiny inline SVG thumbnail for a name necklace (elliptical loop of beads). */
 export function nombresCartImage(
   mariaHex: string,
   jesusHex: string,
   metalHex: string
 ): string {
-  // Five beads draped along a shallow smile: letter · accent · letter · accent · letter
+  // Vertical ellipse loop with five beads across the bottom:
+  // letter · accent · letter · accent · letter
   const cx = 40;
-  const cy = 26;
-  const r = 34;
+  const cy = 38;
+  const rx = 24;
+  const ry = 30;
   const seq = ['L', 'a', 'L', 'b', 'L'];
   const beads = seq
     .map((t, i) => {
-      const deg = 130 - (i * 80) / (seq.length - 1); // 130° → 50°
+      const deg = 140 - (i * 100) / (seq.length - 1); // 140° → 40° (through bottom)
       const rad = (deg * Math.PI) / 180;
-      const x = cx + r * Math.cos(rad);
-      const y = cy + r * Math.sin(rad);
+      const x = cx + rx * Math.cos(rad);
+      const y = cy + ry * Math.sin(rad);
       if (t === 'L')
-        return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="#F7F3E8" stroke="rgba(0,0,0,.18)" stroke-width=".8"/>`;
+        return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5" fill="#F7F3E8" stroke="rgba(0,0,0,.18)" stroke-width=".8"/>`;
       const fill = t === 'a' ? mariaHex : jesusHex;
       return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${fill}"/>`;
     })
     .join('');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#E0F2FE"/><path d="M14 24 A34 34 0 0 0 66 24" fill="none" stroke="${metalHex}" stroke-width="2"/>${beads}<circle cx="40" cy="60" r="6" fill="${metalHex}" stroke="${GOLD_DEEP}" stroke-width=".8"/></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#E0F2FE"/><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${metalHex}" stroke-width="1.6"/>${beads}<ellipse cx="${cx}" cy="${cy - ry}" rx="3.4" ry="4.4" fill="${metalHex}" stroke="${GOLD_DEEP}" stroke-width=".6"/></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }

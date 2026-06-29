@@ -3,10 +3,12 @@
 /**
  * "Collar de Nombres" artwork.
  *
- * A hand-knotted name necklace: white letter beads spell each name, separated
- * by faceted color pepas (from the live stock) and threaded on metallic seed
- * beads. The same SVG drives the configurator preview AND the storefront tile,
- * so the marketing render always matches the real product.
+ * A hand-knotted name necklace laid out as a vertical elliptical loop: white
+ * letter beads spell each name along the bottom, separated by faceted color
+ * pepas (from the live stock) and threaded on metallic seed beads, with a
+ * clasp medallion closing the loop at the top. The same SVG drives the
+ * configurator preview AND the storefront tile, so the marketing render
+ * always matches the real product.
  *
  * Pass `animate={false}` for the static storefront tile.
  */
@@ -15,17 +17,21 @@ import { motion } from 'framer-motion';
 import { GOLD, GOLD_DEEP, GOLD_LIGHT } from '@/lib/customBracelet';
 import type { PepaPaint } from './pulseraArt';
 
-// ───────────────────────── Necklace drape geometry ─────────────────────────
+// ───────────────────────── Elliptical loop geometry ─────────────────────────
 
-// Beads sit on a circular arc whose centre is well above the canvas, giving a
-// gentle "smile" drape. Angles are measured in SVG space (y grows downward),
-// so 90° is the bottom-centre of the necklace.
+// Beads ride a vertical ellipse (taller than wide, like the real piece laid
+// flat). Angles are SVG-space degrees (y grows downward): 90° is the bottom
+// (where the names sit), 270° is the top (where the clasp closes the loop).
 const CX = 200;
-const CY_TOP = 18;
-const R = 212;
-const A_LEFT = 140; // first (leftmost) bead
-const A_RIGHT = 40; // last (rightmost) bead
-const MIN_BEADS = 30; // keep short names looking like a full necklace
+const CY = 215;
+const RX = 146;
+const RY = 192;
+// Sweep from just right-of-top, clockwise through the bottom, to just
+// left-of-top — leaving a small gap at the very top for the clasp. The span is
+// centred on 90° so the names land dead-centre at the bottom.
+const A_START = -68;
+const A_END = 248;
+const MIN_BEADS = 40; // keep short names looking like a full necklace
 
 type Family = 'maria' | 'jesus';
 type SeqBead =
@@ -33,9 +39,44 @@ type SeqBead =
   | { k: 'accent'; fam: Family }
   | { k: 'seed' };
 
-function pointAt(deg: number): { x: number; y: number } {
+function ellipsePt(deg: number): { x: number; y: number } {
   const rad = (deg * Math.PI) / 180;
-  return { x: CX + R * Math.cos(rad), y: CY_TOP + R * Math.sin(rad) };
+  return { x: CX + RX * Math.cos(rad), y: CY + RY * Math.sin(rad) };
+}
+
+/**
+ * Place `count` beads evenly **by arc length** along the ellipse sweep, so
+ * spacing stays uniform despite the ellipse's varying curvature.
+ */
+function placeByArcLength(count: number): { x: number; y: number }[] {
+  const STEPS = 900;
+  const pts: { x: number; y: number }[] = [];
+  const cum: number[] = [0];
+  let prev = ellipsePt(A_START);
+  pts.push(prev);
+  for (let i = 1; i <= STEPS; i++) {
+    const deg = A_START + ((A_END - A_START) * i) / STEPS;
+    const p = ellipsePt(deg);
+    const d = Math.hypot(p.x - prev.x, p.y - prev.y);
+    cum.push(cum[i - 1] + d);
+    pts.push(p);
+    prev = p;
+  }
+  const total = cum[STEPS];
+  const out: { x: number; y: number }[] = [];
+  for (let b = 0; b < count; b++) {
+    const target = count === 1 ? total / 2 : (total * b) / (count - 1);
+    // Walk the cumulative table to the segment containing `target`.
+    let lo = 0;
+    while (lo < STEPS && cum[lo + 1] < target) lo++;
+    const segLen = cum[lo + 1] - cum[lo] || 1;
+    const t = (target - cum[lo]) / segLen;
+    out.push({
+      x: pts[lo].x + (pts[lo + 1].x - pts[lo].x) * t,
+      y: pts[lo].y + (pts[lo + 1].y - pts[lo].y) * t,
+    });
+  }
+  return out;
 }
 
 /** Build the full bead run: names centred, color/seed filler on both sides. */
@@ -53,12 +94,14 @@ function buildSequence(names: string[]): SeqBead[] {
   const filler = (j: number): SeqBead =>
     j % 3 === 0 ? { k: 'accent', fam: 'maria' } : { k: 'seed' };
 
-  const pad = Math.max(MIN_BEADS - core.length, 8);
+  const pad = Math.max(MIN_BEADS - core.length, 10);
   const left = Math.ceil(pad / 2);
   const right = pad - left;
   const leftPad = Array.from({ length: left }, (_, j) => filler(left - 1 - j));
   const rightPad = Array.from({ length: right }, (_, j) => filler(j));
-  return [...leftPad, ...core, ...rightPad];
+  // Reading order is left → right, but the sweep runs right → left across the
+  // bottom, so reverse to keep the names readable.
+  return [...leftPad, ...core, ...rightPad].reverse();
 }
 
 // ───────────────────────── Bead primitives ─────────────────────────
@@ -105,17 +148,7 @@ function SeedBead({ x, y, r, hex }: { x: number; y: number; r: number; hex: stri
   );
 }
 
-function LetterBead({
-  x,
-  y,
-  r,
-  ch,
-}: {
-  x: number;
-  y: number;
-  r: number;
-  ch: string;
-}) {
+function LetterBead({ x, y, r, ch }: { x: number; y: number; r: number; ch: string }) {
   return (
     <>
       <circle cx={x} cy={y} r={r} fill="#F8F4EA" stroke="rgba(0,0,0,0.16)" strokeWidth={0.7} />
@@ -135,13 +168,13 @@ function LetterBead({
   );
 }
 
-/** Small silver clasp medallion that rides near the right of the thread. */
+/** Small silver clasp medallion that closes the loop at the top. */
 function ClaspMedal({ x, y, metalHex }: { x: number; y: number; metalHex: string }) {
   return (
     <g>
-      <ellipse cx={x} cy={y} rx={8} ry={10} fill={metalHex} stroke={GOLD_DEEP} strokeWidth={0.8} />
-      <ellipse cx={x} cy={y} rx={8} ry={10} fill="url(#nSeed)" opacity={0.6} />
-      <ellipse cx={x} cy={y} rx={4.5} ry={6.5} fill="none" stroke={GOLD_DEEP} strokeWidth={0.6} opacity={0.6} />
+      <ellipse cx={x} cy={y} rx={8.5} ry={11} fill={metalHex} stroke={GOLD_DEEP} strokeWidth={0.9} />
+      <ellipse cx={x} cy={y} rx={8.5} ry={11} fill="url(#nSeed)" opacity={0.6} />
+      <ellipse cx={x} cy={y} rx={4.8} ry={7} fill="none" stroke={GOLD_DEEP} strokeWidth={0.6} opacity={0.6} />
     </g>
   );
 }
@@ -164,49 +197,45 @@ export function NombresCollarPreview({
   const clean = names.map((n) => n.toUpperCase()).filter(Boolean);
   const seq = buildSequence(clean.length ? clean : ['']);
   const n = seq.length;
-  const step = (A_LEFT - A_RIGHT) / Math.max(n - 1, 1);
+  const positions = placeByArcLength(n);
 
-  // Even angular spacing → uniform arc-length spacing. Size beads to fit.
-  const arcLen = (R * (A_LEFT - A_RIGHT) * Math.PI) / 180;
-  const spacing = arcLen / Math.max(n - 1, 1);
+  // Size beads to the local spacing so nothing overlaps.
+  const spacing =
+    n > 1
+      ? Math.hypot(positions[1].x - positions[0].x, positions[1].y - positions[0].y)
+      : 16;
   const seedR = Math.max(2.4, Math.min(4, spacing * 0.34));
-  const accentR = Math.max(4, Math.min(7.5, spacing * 0.5));
-  const letterR = Math.max(5.5, Math.min(10, spacing * 0.56));
+  const accentR = Math.max(4, Math.min(7.5, spacing * 0.52));
+  const letterR = Math.max(5.5, Math.min(10.5, spacing * 0.58));
 
-  const placed = seq.map((b, i) => ({ b, ...pointAt(A_LEFT - i * step), i }));
+  const placed = seq.map((b, i) => ({ b, ...positions[i], i }));
 
-  // Thread: sampled arc + short tails rising to the clasp at top centre.
-  const samples = 64;
-  const arc = Array.from({ length: samples + 1 }, (_, k) => {
-    const a = A_LEFT - (k / samples) * (A_LEFT - A_RIGHT);
-    const p = pointAt(a);
-    return `${k === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
-  }).join(' ');
-  const lEnd = pointAt(A_LEFT);
-  const rEnd = pointAt(A_RIGHT);
-  // Clasp medal rides midway along the right-hand tail (bead end → top clasp).
-  const clasp = { x: (rEnd.x + CX) / 2, y: (rEnd.y + 12) / 2 };
+  // Thread: the elliptical sweep + two short tails meeting at the clasp.
+  const start = ellipsePt(A_START);
+  const end = ellipsePt(A_END);
+  const claspY = CY - RY - 6;
+  const arc = `M${start.x.toFixed(1)} ${start.y.toFixed(1)} A${RX} ${RY} 0 1 1 ${end.x.toFixed(1)} ${end.y.toFixed(1)}`;
 
   return (
     <svg
-      viewBox="0 0 400 300"
+      viewBox="0 0 400 440"
       className="h-auto w-full drop-shadow-[0_18px_40px_rgba(30,58,138,0.18)]"
       role="img"
       aria-label={`Vista previa de tu collar de nombres ${clean.join(', ')}`}
     >
       <NombresDefs />
 
-      {/* Thread + clasp tails */}
+      {/* Thread loop + clasp tails */}
+      <path d={arc} fill="none" stroke={metalHex} strokeWidth={1.6} opacity={0.8} />
       <path
-        d={`M${CX} 12 L${lEnd.x.toFixed(1)} ${lEnd.y.toFixed(1)} ${arc} L${CX} 12`}
+        d={`M${start.x.toFixed(1)} ${start.y.toFixed(1)} L${CX} ${claspY} L${end.x.toFixed(1)} ${end.y.toFixed(1)}`}
         fill="none"
         stroke={metalHex}
         strokeWidth={1.6}
         strokeLinejoin="round"
-        opacity={0.85}
+        opacity={0.8}
       />
-      <circle cx={CX} cy={12} r={4} fill="none" stroke={metalHex} strokeWidth={1.6} />
-      <ClaspMedal x={clasp.x} y={clasp.y} metalHex={metalHex} />
+      <ClaspMedal x={CX} y={claspY} metalHex={metalHex} />
 
       {/* Beads */}
       <g key={`${maria.hex}-${jesus.hex}-${metalHex}-${clean.join('')}`}>
@@ -231,7 +260,7 @@ export function NombresCollarPreview({
               key={i}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: i * 0.01 }}
+              transition={{ duration: 0.3, delay: i * 0.008 }}
             >
               {inner}
             </motion.g>
