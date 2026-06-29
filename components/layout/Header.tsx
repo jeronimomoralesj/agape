@@ -10,6 +10,7 @@ import { useCart } from '@/components/cart/CartContext';
 const BASE_LINKS = [
   { href: '/', label: 'Tienda' },
   { href: '/personalizar', label: 'Crea la Tuya' },
+  { href: '/collar-nombres', label: 'Collar de Nombres' },
   { href: '/mision', label: 'Misión' },
   { href: '/#misterio-del-dia', label: 'Misterios' },
   { href: '/#guia-rosario', label: 'Cómo Rezar' },

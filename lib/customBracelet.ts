@@ -7,8 +7,8 @@
 /** The two devotional pepa families — tracked separately in inventory. */
 export type PepaKind = 'maria' | 'jesus';
 
-/** The two product lines the customer can design. */
-export type ProductType = 'pulsera' | 'collar';
+/** The product lines the customer can design. */
+export type ProductType = 'pulsera' | 'collar' | 'nombres';
 
 export interface BeadOption {
   id: string;
@@ -32,10 +32,36 @@ export interface DijeOption {
   name: string;
 }
 
+/** A metallic finish for the seed beads of the "Collar de Nombres". */
+export interface MetalOption {
+  id: string;
+  name: string;
+  hex: string;
+}
+
+// ───────────────────────── Collar de Nombres ─────────────────────────
+
+/** Hand-knotted name necklace: 1–5 names, up to 10 letters each. */
+export const MIN_NAMES = 1;
+export const MAX_NAMES = 5;
+export const MAX_NAME_LEN = 10;
+
+/** Base price (1 name) + each additional name — COP, validated server-side. */
+export const NOMBRES_BASE_PRICE = 42000;
+export const NOMBRES_PER_NAME = 14000;
+
+/** Metallic seed-bead finishes for the name necklace (not from pepa stock). */
+export const METALS: MetalOption[] = [
+  { id: 'plata', name: 'Plata', hex: '#C2C7CF' },
+  { id: 'oro', name: 'Oro', hex: '#D9BC6B' },
+];
+export const DEFAULT_METAL_ID = METALS[0].id;
+
 /** Fixed price per product line — COP, validated server-side. */
 export const CUSTOM_PRICES: Record<ProductType, number> = {
   pulsera: 22000,
   collar: 35000,
+  nombres: NOMBRES_BASE_PRICE,
 };
 
 /** Back-compat alias (the pulsera price). */
@@ -44,6 +70,7 @@ export const CUSTOM_PRICE = CUSTOM_PRICES.pulsera;
 export const PRODUCT_LABELS: Record<ProductType, string> = {
   pulsera: 'Pulsera',
   collar: 'Collar',
+  nombres: 'Collar de Nombres',
 };
 
 /**
@@ -107,6 +134,43 @@ export interface CustomConfig {
   cordId?: string;
   /** Centerpiece medal — only meaningful for the collar */
   dijeId?: string;
+  /** Personalized names — only meaningful for the "Collar de Nombres" */
+  names?: string[];
+  /** Seed-bead metal finish — only meaningful for the "Collar de Nombres" */
+  metalId?: string;
+}
+
+export function findMetal(id: string | undefined): MetalOption {
+  return METALS.find((m) => m.id === id) ?? METALS[0];
+}
+
+/** Uppercase a single name, keep only letters, cap at MAX_NAME_LEN. */
+export function sanitizeName(raw: string): string {
+  return (raw ?? '')
+    .toUpperCase()
+    .replace(/[^A-ZÁÉÍÓÚÜÑ]/g, '')
+    .slice(0, MAX_NAME_LEN);
+}
+
+/** Clean a list of names: trim each to letters, drop empties, cap at MAX_NAMES. */
+export function sanitizeNames(names: unknown): string[] {
+  const list = Array.isArray(names) ? names : [];
+  return list
+    .map((n) => sanitizeName(String(n ?? '')))
+    .filter((n) => n.length > 0)
+    .slice(0, MAX_NAMES);
+}
+
+/** Price of a name necklace — scales with how many names are engraved. */
+export function nombresPrice(names: unknown): number {
+  const n = Math.max(MIN_NAMES, sanitizeNames(names).length || MIN_NAMES);
+  return NOMBRES_BASE_PRICE + (n - 1) * NOMBRES_PER_NAME;
+}
+
+/** Resolve the COP price for any custom config (server-validated). */
+export function configPrice(config: CustomConfig): number {
+  if (config.type === 'nombres') return nombresPrice(config.names);
+  return CUSTOM_PRICES[config.type];
 }
 
 export function findBead(id: string): BeadOption | undefined {
@@ -134,6 +198,10 @@ export function configDije(config: CustomConfig): DijeOption {
 }
 
 export function customProductId(config: CustomConfig): string {
+  if (config.type === 'nombres') {
+    const names = sanitizeNames(config.names).join('-').toLowerCase() || 'sin-nombre';
+    return `custom-nombres-${names}-${config.mariaId}.${config.jesusId}-${findMetal(config.metalId).id}`;
+  }
   if (config.type === 'collar') {
     return `custom-collar-${config.mariaId}.${config.jesusId}-${configDije(config).id}`;
   }
@@ -149,6 +217,12 @@ export function customTitle(
 ): string {
   const maria = resolveBead(config.mariaId)?.name ?? '';
   const jesus = resolveBead(config.jesusId)?.name ?? '';
+  if (config.type === 'nombres') {
+    const names = sanitizeNames(config.names);
+    const titled = names.map((n) => n.charAt(0) + n.slice(1).toLowerCase());
+    const list = titled.join(' · ') || 'Tu nombre';
+    return `Collar de Nombres — ${list} · Pepas ${maria} y ${jesus} · ${findMetal(config.metalId).name}`;
+  }
   const noun = config.type === 'collar' ? 'Collar Personalizado' : 'Pulsera Personalizada';
   const pepas = `Pepas Ave María ${maria} · Padre Nuestro ${jesus}`;
   if (config.type === 'collar') return `${noun} — ${pepas} · Medallas crucero ${configDije(config).name}`;
@@ -168,5 +242,32 @@ export function customCartImage(
     .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="6" fill="${mariaHex}"/>`)
     .join('');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#E0F2FE"/><circle cx="40" cy="40" r="30" fill="none" stroke="${cordHex}" stroke-width="3"/>${maria}<circle cx="40" cy="40" r="8.5" fill="${jesusHex}"/><rect x="37" y="56" width="6" height="20" rx="2" fill="${GOLD}"/><rect x="30" y="61" width="20" height="6" rx="2" fill="${GOLD}"/></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+/** Tiny inline SVG thumbnail for a name necklace (letter beads + accents). */
+export function nombresCartImage(
+  mariaHex: string,
+  jesusHex: string,
+  metalHex: string
+): string {
+  // Five beads draped along a shallow smile: letter · accent · letter · accent · letter
+  const cx = 40;
+  const cy = 26;
+  const r = 34;
+  const seq = ['L', 'a', 'L', 'b', 'L'];
+  const beads = seq
+    .map((t, i) => {
+      const deg = 130 - (i * 80) / (seq.length - 1); // 130° → 50°
+      const rad = (deg * Math.PI) / 180;
+      const x = cx + r * Math.cos(rad);
+      const y = cy + r * Math.sin(rad);
+      if (t === 'L')
+        return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="#F7F3E8" stroke="rgba(0,0,0,.18)" stroke-width=".8"/>`;
+      const fill = t === 'a' ? mariaHex : jesusHex;
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${fill}"/>`;
+    })
+    .join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#E0F2FE"/><path d="M14 24 A34 34 0 0 0 66 24" fill="none" stroke="${metalHex}" stroke-width="2"/>${beads}<circle cx="40" cy="60" r="6" fill="${metalHex}" stroke="${GOLD_DEEP}" stroke-width=".8"/></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }

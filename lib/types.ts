@@ -29,14 +29,20 @@ export interface CartItem {
   image: string;
   quantity: number;
   stock: number;
-  /** Present for "Crea tu pulsera / collar" custom configurations */
+  /** Present for "Crea tu pulsera / collar / nombres" custom configurations */
   custom?: {
-    type?: 'pulsera' | 'collar';
+    type?: 'pulsera' | 'collar' | 'nombres';
     /** Color of the small María pepas */
     mariaId?: string;
     /** Color of the larger Jesús intersection pepas */
     jesusId?: string;
     cordId?: string;
+    /** Centerpiece medal — collar only */
+    dijeId?: string;
+    /** Personalized names — "Collar de Nombres" only */
+    names?: string[];
+    /** Seed-bead metal finish — "Collar de Nombres" only */
+    metalId?: string;
     /** Legacy single-list carts (pre maría/jesús split) */
     beadIds?: string[];
   };
