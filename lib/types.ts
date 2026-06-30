@@ -45,6 +45,8 @@ export interface CartItem {
     metalId?: string;
     /** Separator pepita color — "Pulsera Colombia" only */
     separatorId?: string;
+    /** Bead arrangement — "Pulsera Colombia" only */
+    patternId?: string;
     /** Legacy single-list carts (pre maría/jesús split) */
     beadIds?: string[];
   };

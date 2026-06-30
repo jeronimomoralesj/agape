@@ -556,26 +556,43 @@ const SEP_BEAD_R = 4.0;
 const [FLAG_Y, FLAG_B, FLAG_R] = COLOMBIA_FLAG.map((c) => c.hex);
 
 /**
- * Symmetric tricolor loop. From the cross at the bottom: 10 amarillo · 10 azul ·
- * 10 rojo up one side, then mirrored (rojo · azul · amarillo) back down the
- * other — 20 of each color, the two rojo blocks meeting at the top and the
- * amarillo blocks flanking the cross. A separator pepita sits between every
- * color block and on each side of the cross.
+ * Two bead arrangements for the flag:
+ *
+ * 'bloques' (default) — symmetric blocks. From the cross at the bottom:
+ *   10 amarillo · 10 azul · 10 rojo · 10 azul · 10 amarillo, a single rojo
+ *   block at the top, amarillo flanking the cross, separators between blocks.
+ *
+ * 'repetido' — clockwise from the dije, the unit 4 amarillo · 3 azul · 3 rojo
+ *   followed by a separator, repeated 5 times around the loop.
  */
-function colombiaLoop(sepHex: string, sepLight: boolean): ColorStep[] {
+function colombiaLoop(patternId: string, sepHex: string, sepLight: boolean): ColorStep[] {
   const flag = (hex: string): ColorStep => ({ hex, light: false, r: FLAG_BEAD_R, weight: 1 });
   const sep = (): ColorStep => ({ hex: sepHex, light: sepLight, r: SEP_BEAD_R, weight: 0.7 });
-  const halfUp = [
+
+  if (patternId === 'repetido') {
+    const out: ColorStep[] = [];
+    for (let i = 0; i < 5; i++) {
+      out.push(
+        ...rep(4, flag(FLAG_Y)),
+        ...rep(3, flag(FLAG_B)),
+        ...rep(3, flag(FLAG_R)),
+        sep()
+      );
+    }
+    return out;
+  }
+
+  return [
+    sep(),
     ...rep(10, flag(FLAG_Y)),
     sep(),
     ...rep(10, flag(FLAG_B)),
     sep(),
     ...rep(10, flag(FLAG_R)),
-  ];
-  return [
     sep(),
-    ...halfUp,
-    ...[...halfUp].reverse(),
+    ...rep(10, flag(FLAG_B)),
+    sep(),
+    ...rep(10, flag(FLAG_Y)),
     sep(),
   ];
 }
@@ -599,14 +616,16 @@ export function PulseraColombiaPreview({
   separatorHex,
   separatorLight,
   cordHex,
+  patternId = 'bloques',
   animate = true,
 }: {
   separatorHex: string;
   separatorLight: boolean;
   cordHex: string;
+  patternId?: string;
   animate?: boolean;
 }) {
-  const pieces = layoutColorLoop(colombiaLoop(separatorHex, separatorLight), {
+  const pieces = layoutColorLoop(colombiaLoop(patternId, separatorHex, separatorLight), {
     cx: P_CX,
     cy: P_CY,
     rx: P_RX,
@@ -626,8 +645,8 @@ export function PulseraColombiaPreview({
       {/* Thread around the full loop — the knot sits hidden at the back */}
       <path d={P_LOOP} fill="none" stroke={cordHex} strokeWidth={2.4} strokeLinecap="round" opacity={0.95} />
 
-      {/* Tricolor pepas — re-staggers when the separator changes */}
-      <g key={separatorHex}>
+      {/* Tricolor pepas — re-staggers when the pattern or separator changes */}
+      <g key={`${patternId}-${separatorHex}`}>
         {pieces.map((p, i) => (
           <Bead
             key={i}

@@ -9,7 +9,9 @@ import {
   CORDS,
   COLOMBIA_EDITION,
   COLOMBIA_FLAG,
+  COLOMBIA_PATTERNS,
   CUSTOM_PRICES,
+  DEFAULT_PATTERN_ID,
   DEFAULT_SEPARATOR_ID,
   SEPARATORS,
   customTitle,
@@ -20,6 +22,7 @@ import { PulseraColombiaPreview } from './pulseraArt';
 
 export default function ColombiaStudio() {
   const { addCustomItem } = useCart();
+  const [patternId, setPatternId] = useState(DEFAULT_PATTERN_ID);
   const [separatorId, setSeparatorId] = useState(DEFAULT_SEPARATOR_ID);
   const [cordId, setCordId] = useState(CORDS[0].id);
   const [added, setAdded] = useState(false);
@@ -35,6 +38,7 @@ export default function ColombiaStudio() {
       mariaId: separatorId,
       jesusId: separatorId,
       separatorId,
+      patternId,
       cordId,
     };
     addCustomItem(config, {
@@ -57,6 +61,7 @@ export default function ColombiaStudio() {
               separatorHex={separator.hex}
               separatorLight={!!separator.light}
               cordHex={cord.hex}
+              patternId={patternId}
             />
           </div>
           <div className="mt-2 text-center sm:mt-4">
@@ -94,6 +99,38 @@ export default function ColombiaStudio() {
               Lleva la bandera puesta hasta el final del Mundial. ¡Vamos, Colombia! 🇨🇴
             </span>
           </p>
+        </div>
+
+        {/* Pattern */}
+        <div className="rounded-3xl border border-oro/20 bg-white/80 p-5 shadow-card sm:p-6">
+          <h3 className="font-serif text-base font-semibold text-royal sm:text-lg">
+            Diseño de la bandera
+          </h3>
+          <p className="mt-1 text-xs text-royal/55">Elige cómo se distribuyen los colores.</p>
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {COLOMBIA_PATTERNS.map((option) => {
+              const selected = patternId === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setPatternId(option.id)}
+                  aria-pressed={selected}
+                  className={`flex flex-col items-start gap-1 rounded-2xl border px-4 py-3 text-left transition-all duration-300 ${
+                    selected
+                      ? 'border-oro bg-oro/10 shadow-aura-soft'
+                      : 'border-royal/10 bg-white/60 hover:border-oro/50'
+                  }`}
+                >
+                  <span className="flex items-center gap-2 font-serif text-sm font-semibold text-royal">
+                    {selected && <Check className="h-4 w-4 text-oro-deep" strokeWidth={3} />}
+                    {option.name}
+                  </span>
+                  <span className="text-[0.7rem] leading-snug text-royal/55">{option.detail}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Separator pepita */}

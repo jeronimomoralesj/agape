@@ -9,6 +9,7 @@ import {
   findCord,
   findDije,
   findMetal,
+  findPattern,
   findSeparator,
   sanitizeNames,
   DEFAULT_DIJE_ID,
@@ -81,9 +82,12 @@ export async function POST(request: NextRequest) {
               ? 'colombia'
               : 'pulsera';
 
-      // The "Pulsera Colombia" has fixed flag colors — only the separator varies.
+      // The "Pulsera Colombia" has fixed flag colors — only the separator and
+      // the bead pattern vary.
       const separatorId: string | undefined =
         type === 'colombia' ? findSeparator(raw.separatorId).id : undefined;
+      const patternId: string | undefined =
+        type === 'colombia' ? findPattern(raw.patternId).id : undefined;
 
       // Resolve the two colors, tolerating legacy single-list carts.
       const legacyFirst = Array.isArray(raw.beadIds) ? raw.beadIds[0] : raw.beadId;
@@ -122,6 +126,7 @@ export async function POST(request: NextRequest) {
         names,
         metalId,
         separatorId,
+        patternId,
       };
       const price = configPrice(config);
       orderItems.push({

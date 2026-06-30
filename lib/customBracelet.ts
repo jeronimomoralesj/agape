@@ -88,6 +88,23 @@ export function findSeparator(id: string | undefined): BeadOption {
   return SEPARATORS.find((s) => s.id === id) ?? SEPARATORS[0];
 }
 
+/** The two bead arrangements the customer can choose for the flag. */
+export interface PatternOption {
+  id: string;
+  name: string;
+  /** Short human description for the picker. */
+  detail: string;
+}
+export const COLOMBIA_PATTERNS: PatternOption[] = [
+  { id: 'bloques', name: 'Bloques', detail: '10 amarillo · 10 azul · 10 rojo (simétrico)' },
+  { id: 'repetido', name: 'Tricolor repetido', detail: '4 amarillo · 3 azul · 3 rojo, repetido 5 veces' },
+];
+export const DEFAULT_PATTERN_ID = COLOMBIA_PATTERNS[0].id;
+
+export function findPattern(id: string | undefined): PatternOption {
+  return COLOMBIA_PATTERNS.find((p) => p.id === id) ?? COLOMBIA_PATTERNS[0];
+}
+
 /** Fixed price per product line — COP, validated server-side. */
 export const CUSTOM_PRICES: Record<ProductType, number> = {
   pulsera: 22000,
@@ -173,6 +190,8 @@ export interface CustomConfig {
   metalId?: string;
   /** Separator pepita color — only meaningful for the "Pulsera Colombia" */
   separatorId?: string;
+  /** Bead arrangement — only meaningful for the "Pulsera Colombia" */
+  patternId?: string;
 }
 
 export function findMetal(id: string | undefined): MetalOption {
@@ -233,7 +252,7 @@ export function configDije(config: CustomConfig): DijeOption {
 
 export function customProductId(config: CustomConfig): string {
   if (config.type === 'colombia') {
-    return `custom-colombia-${findSeparator(config.separatorId).id}-${config.cordId ?? CORDS[0].id}`;
+    return `custom-colombia-${findPattern(config.patternId).id}-${findSeparator(config.separatorId).id}-${config.cordId ?? CORDS[0].id}`;
   }
   if (config.type === 'nombres') {
     const names = sanitizeNames(config.names).join('-').toLowerCase() || 'sin-nombre';
@@ -255,7 +274,8 @@ export function customTitle(
   if (config.type === 'colombia') {
     const sep = findSeparator(config.separatorId);
     const cord = configCord(config);
-    return `Pulsera Colombia — Bandera tricolor · Pepitas separadoras en ${sep.name.toLowerCase()} · Cordón ${cord.name} · ${COLOMBIA_EDITION}`;
+    const pattern = findPattern(config.patternId);
+    return `Pulsera Colombia — Bandera tricolor (${pattern.name}) · Pepitas separadoras en ${sep.name.toLowerCase()} · Cordón ${cord.name} · ${COLOMBIA_EDITION}`;
   }
   const maria = resolveBead(config.mariaId)?.name ?? '';
   const jesus = resolveBead(config.jesusId)?.name ?? '';
