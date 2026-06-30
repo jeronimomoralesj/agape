@@ -555,19 +555,18 @@ const SEP_BEAD_R = 5.2;
 
 const [FLAG_Y, FLAG_B, FLAG_R] = COLOMBIA_FLAG.map((c) => c.hex);
 
-/** Repeating flag unit (4 amarillo · 2 azul · 2 rojo, ~2:1:1) with separators. */
+/** 10 amarillo · 10 azul · 10 rojo in solid blocks, a separator between each. */
 function colombiaLoop(sepHex: string, sepLight: boolean): ColorStep[] {
   const flag = (hex: string): ColorStep => ({ hex, light: false, r: FLAG_BEAD_R, weight: 1 });
   const sep: ColorStep = { hex: sepHex, light: sepLight, r: SEP_BEAD_R, weight: 0.62 };
-  const unit: ColorStep[] = [
-    ...rep(4, flag(FLAG_Y)),
+  return [
+    ...rep(10, flag(FLAG_Y)),
     sep,
-    ...rep(2, flag(FLAG_B)),
+    ...rep(10, flag(FLAG_B)),
     sep,
-    ...rep(2, flag(FLAG_R)),
+    ...rep(10, flag(FLAG_R)),
     sep,
   ];
-  return [...unit, ...unit, ...unit];
 }
 
 /** Distribute a weighted pattern of explicitly-colored beads along the loop. */

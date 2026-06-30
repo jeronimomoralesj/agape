@@ -322,9 +322,16 @@ export function colombiaCartImage(separatorHex: string, cordHex: string): string
   const cy = 36;
   const r = 27;
   const [Y, B, R] = COLOMBIA_FLAG.map((c) => c.hex);
-  // Two repeats of the flag unit: amarillo·amarillo·sep·azul·sep·rojo·sep
-  const unit = [Y, Y, separatorHex, B, separatorHex, R, separatorHex];
-  const seq = [...unit, ...unit];
+  // Solid blocks of each flag color with a separator between them.
+  const block = (hex: string) => [hex, hex, hex];
+  const seq = [
+    ...block(Y),
+    separatorHex,
+    ...block(B),
+    separatorHex,
+    ...block(R),
+    separatorHex,
+  ];
   const beads = seq
     .map((hex, i) => {
       const deg = (i / seq.length) * 360 - 90;
