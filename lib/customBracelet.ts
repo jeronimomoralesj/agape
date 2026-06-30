@@ -8,7 +8,7 @@
 export type PepaKind = 'maria' | 'jesus';
 
 /** The product lines the customer can design. */
-export type ProductType = 'pulsera' | 'collar' | 'nombres';
+export type ProductType = 'pulsera' | 'collar' | 'nombres' | 'colombia';
 
 export interface BeadOption {
   id: string;
@@ -56,11 +56,44 @@ export const METALS: MetalOption[] = [
 ];
 export const DEFAULT_METAL_ID = METALS[0].id;
 
+// ───────────────────────── Pulsera Colombia (edición limitada) ─────────────────────────
+
+/**
+ * Limited-edition tricolor bracelet — the Colombian flag (amarillo · azul ·
+ * rojo) replaces the devotional pepas. The only choice the customer makes is
+ * the color of the little separator pepitas between each flag color (white or
+ * black); the piece still ends in the same Virgen Milagrosa + crucifijo as the
+ * regular pulsera. On sale only through the 2026 World Cup.
+ */
+export const COLOMBIA_PRICE = 20000;
+
+/** Marketing tag shown on the limited-edition tiles/badges. */
+export const COLOMBIA_EDITION = 'Edición limitada · Mundial 2026';
+
+/** The three flag colors, in flag order (fixed — not customer-selectable). */
+export const COLOMBIA_FLAG: BeadOption[] = [
+  { id: 'amarillo', name: 'Amarillo', hex: '#FCD116' },
+  { id: 'azul', name: 'Azul', hex: '#00338D' },
+  { id: 'rojo', name: 'Rojo', hex: '#CE1126' },
+];
+
+/** Separator pepita the customer picks — sits between each flag color. */
+export const SEPARATORS: BeadOption[] = [
+  { id: 'blanco', name: 'Blanco', hex: '#F7F8F8', light: true },
+  { id: 'negro', name: 'Negro', hex: '#1A1A1A' },
+];
+export const DEFAULT_SEPARATOR_ID = SEPARATORS[0].id;
+
+export function findSeparator(id: string | undefined): BeadOption {
+  return SEPARATORS.find((s) => s.id === id) ?? SEPARATORS[0];
+}
+
 /** Fixed price per product line — COP, validated server-side. */
 export const CUSTOM_PRICES: Record<ProductType, number> = {
   pulsera: 22000,
   collar: 35000,
   nombres: NOMBRES_BASE_PRICE,
+  colombia: COLOMBIA_PRICE,
 };
 
 /** Back-compat alias (the pulsera price). */
@@ -70,6 +103,7 @@ export const PRODUCT_LABELS: Record<ProductType, string> = {
   pulsera: 'Pulsera',
   collar: 'Collar',
   nombres: 'Collar de Nombres',
+  colombia: 'Pulsera Colombia',
 };
 
 /**
@@ -137,6 +171,8 @@ export interface CustomConfig {
   names?: string[];
   /** Seed-bead metal finish — only meaningful for the "Collar de Nombres" */
   metalId?: string;
+  /** Separator pepita color — only meaningful for the "Pulsera Colombia" */
+  separatorId?: string;
 }
 
 export function findMetal(id: string | undefined): MetalOption {
@@ -196,6 +232,9 @@ export function configDije(config: CustomConfig): DijeOption {
 }
 
 export function customProductId(config: CustomConfig): string {
+  if (config.type === 'colombia') {
+    return `custom-colombia-${findSeparator(config.separatorId).id}-${config.cordId ?? CORDS[0].id}`;
+  }
   if (config.type === 'nombres') {
     const names = sanitizeNames(config.names).join('-').toLowerCase() || 'sin-nombre';
     return `custom-nombres-${names}-${config.mariaId}.${config.jesusId}-${findMetal(config.metalId).id}`;
@@ -213,6 +252,11 @@ export function customTitle(
    *  orders API passes a resolver backed by the admin-managed colors. */
   resolveBead: (id: string) => { name?: string } | undefined = findBead
 ): string {
+  if (config.type === 'colombia') {
+    const sep = findSeparator(config.separatorId);
+    const cord = configCord(config);
+    return `Pulsera Colombia — Bandera tricolor · Pepitas separadoras en ${sep.name.toLowerCase()} · Cordón ${cord.name} · ${COLOMBIA_EDITION}`;
+  }
   const maria = resolveBead(config.mariaId)?.name ?? '';
   const jesus = resolveBead(config.jesusId)?.name ?? '';
   if (config.type === 'nombres') {
@@ -269,5 +313,36 @@ export function nombresCartImage(
     })
     .join('');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#E0F2FE"/><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${metalHex}" stroke-width="1.6"/>${beads}<ellipse cx="${cx}" cy="${cy - ry}" rx="3.4" ry="4.4" fill="${metalHex}" stroke="${GOLD_DEEP}" stroke-width=".6"/></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+/** Tiny inline SVG thumbnail for the "Pulsera Colombia" (tricolor flag loop). */
+export function colombiaCartImage(separatorHex: string, cordHex: string): string {
+  const cx = 40;
+  const cy = 36;
+  const r = 27;
+  const [Y, B, R] = COLOMBIA_FLAG.map((c) => c.hex);
+  // Solid blocks of each flag color with a separator between them.
+  const block = (hex: string) => [hex, hex, hex];
+  const seq = [
+    ...block(Y),
+    separatorHex,
+    ...block(B),
+    separatorHex,
+    ...block(R),
+    separatorHex,
+  ];
+  const beads = seq
+    .map((hex, i) => {
+      const deg = (i / seq.length) * 360 - 90;
+      const rad = (deg * Math.PI) / 180;
+      const x = cx + r * Math.cos(rad);
+      const y = cy + r * Math.sin(rad);
+      const isSep = hex === separatorHex;
+      const rim = isSep ? ' stroke="rgba(0,0,0,.18)" stroke-width=".7"' : '';
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isSep ? 3.6 : 4.8}" fill="${hex}"${rim}/>`;
+    })
+    .join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#E0F2FE"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${cordHex}" stroke-width="2.4"/>${beads}<rect x="37" y="${cy + r - 1}" width="6" height="18" rx="2" fill="${GOLD}"/><rect x="30" y="${cy + r + 4}" width="20" height="6" rx="2" fill="${GOLD}"/></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }

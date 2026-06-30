@@ -12,6 +12,7 @@ import {
 import type { CartItem, Product } from '@/lib/types';
 import { finalPrice } from '@/lib/types';
 import {
+  colombiaCartImage,
   configCord,
   configPrice,
   customCartImage,
@@ -19,6 +20,7 @@ import {
   customTitle,
   findBead,
   findMetal,
+  findSeparator,
   nombresCartImage,
   type CustomConfig,
 } from '@/lib/customBracelet';
@@ -119,7 +121,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const image =
           config.type === 'nombres'
             ? nombresCartImage(mariaHex, jesusHex, findMetal(config.metalId).hex)
-            : customCartImage(mariaHex, jesusHex, meta?.cordHex ?? configCord(config).hex);
+            : config.type === 'colombia'
+              ? colombiaCartImage(
+                  findSeparator(config.separatorId).hex,
+                  meta?.cordHex ?? configCord(config).hex
+                )
+              : customCartImage(mariaHex, jesusHex, meta?.cordHex ?? configCord(config).hex);
         return [
           ...prev,
           {
