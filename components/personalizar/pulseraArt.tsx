@@ -550,22 +550,33 @@ interface ColorStep {
   weight: number;
 }
 
-const FLAG_BEAD_R = 7.6;
-const SEP_BEAD_R = 5.2;
+const FLAG_BEAD_R = 5.2;
+const SEP_BEAD_R = 4.0;
 
 const [FLAG_Y, FLAG_B, FLAG_R] = COLOMBIA_FLAG.map((c) => c.hex);
 
-/** 10 amarillo · 10 azul · 10 rojo in solid blocks, a separator between each. */
+/**
+ * Symmetric tricolor loop. From the cross at the bottom: 10 amarillo · 10 azul ·
+ * 10 rojo up one side, then mirrored (rojo · azul · amarillo) back down the
+ * other — 20 of each color, the two rojo blocks meeting at the top and the
+ * amarillo blocks flanking the cross. A separator pepita sits between every
+ * color block and on each side of the cross.
+ */
 function colombiaLoop(sepHex: string, sepLight: boolean): ColorStep[] {
   const flag = (hex: string): ColorStep => ({ hex, light: false, r: FLAG_BEAD_R, weight: 1 });
-  const sep: ColorStep = { hex: sepHex, light: sepLight, r: SEP_BEAD_R, weight: 0.62 };
-  return [
+  const sep = (): ColorStep => ({ hex: sepHex, light: sepLight, r: SEP_BEAD_R, weight: 0.7 });
+  const halfUp = [
     ...rep(10, flag(FLAG_Y)),
-    sep,
+    sep(),
     ...rep(10, flag(FLAG_B)),
-    sep,
+    sep(),
     ...rep(10, flag(FLAG_R)),
-    sep,
+  ];
+  return [
+    sep(),
+    ...halfUp,
+    ...[...halfUp].reverse(),
+    sep(),
   ];
 }
 

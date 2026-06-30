@@ -322,14 +322,12 @@ export function colombiaCartImage(separatorHex: string, cordHex: string): string
   const cy = 36;
   const r = 27;
   const [Y, B, R] = COLOMBIA_FLAG.map((c) => c.hex);
-  // Solid blocks of each flag color with a separator between them.
-  const block = (hex: string) => [hex, hex, hex];
+  // Symmetric tricolor: amarillo·azul·rojo · rojo·azul·amarillo, separators between.
+  const block = (hex: string) => [hex, hex];
   const seq = [
-    ...block(Y),
     separatorHex,
-    ...block(B),
-    separatorHex,
-    ...block(R),
+    ...block(Y), separatorHex, ...block(B), separatorHex, ...block(R),
+    ...block(R), separatorHex, ...block(B), separatorHex, ...block(Y),
     separatorHex,
   ];
   const beads = seq
@@ -340,7 +338,7 @@ export function colombiaCartImage(separatorHex: string, cordHex: string): string
       const y = cy + r * Math.sin(rad);
       const isSep = hex === separatorHex;
       const rim = isSep ? ' stroke="rgba(0,0,0,.18)" stroke-width=".7"' : '';
-      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isSep ? 3.6 : 4.8}" fill="${hex}"${rim}/>`;
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isSep ? 2.8 : 3.8}" fill="${hex}"${rim}/>`;
     })
     .join('');
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" fill="#E0F2FE"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${cordHex}" stroke-width="2.4"/>${beads}<rect x="37" y="${cy + r - 1}" width="6" height="18" rx="2" fill="${GOLD}"/><rect x="30" y="${cy + r + 4}" width="20" height="6" rx="2" fill="${GOLD}"/></svg>`;
