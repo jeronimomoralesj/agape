@@ -37,6 +37,7 @@ export default function Footer() {
               <li><Link href="/" className="transition-colors hover:text-oro-light">Tienda</Link></li>
               <li><Link href="/personalizar" className="transition-colors hover:text-oro-light">Crea tu pulsera</Link></li>
               <li><Link href="/collar-nombres" className="transition-colors hover:text-oro-light">Collar de nombres</Link></li>
+              <li><Link href="/pulsera-colombia" className="transition-colors hover:text-oro-light">Pulsera Colombia 🇨🇴</Link></li>
               <li><Link href="/mision" className="transition-colors hover:text-oro-light">Nuestra misión</Link></li>
               <li><Link href="/#misterio-del-dia" className="transition-colors hover:text-oro-light">Misterio del Día</Link></li>
               <li><Link href="/#guia-rosario" className="transition-colors hover:text-oro-light">Cómo rezar el Rosario</Link></li>

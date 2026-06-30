@@ -9,6 +9,7 @@ import {
   findCord,
   findDije,
   findMetal,
+  findSeparator,
   sanitizeNames,
   DEFAULT_DIJE_ID,
   MIN_NAMES,
@@ -72,14 +73,25 @@ export async function POST(request: NextRequest) {
     for (const item of customItems) {
       const raw = item.custom ?? {};
       const type: ProductType =
-        raw.type === 'collar' ? 'collar' : raw.type === 'nombres' ? 'nombres' : 'pulsera';
+        raw.type === 'collar'
+          ? 'collar'
+          : raw.type === 'nombres'
+            ? 'nombres'
+            : raw.type === 'colombia'
+              ? 'colombia'
+              : 'pulsera';
+
+      // The "Pulsera Colombia" has fixed flag colors — only the separator varies.
+      const separatorId: string | undefined =
+        type === 'colombia' ? findSeparator(raw.separatorId).id : undefined;
 
       // Resolve the two colors, tolerating legacy single-list carts.
       const legacyFirst = Array.isArray(raw.beadIds) ? raw.beadIds[0] : raw.beadId;
-      const mariaId: string | undefined = raw.mariaId ?? legacyFirst;
+      const mariaId: string | undefined = raw.mariaId ?? legacyFirst ?? separatorId;
       const jesusId: string | undefined =
         raw.jesusId ?? (Array.isArray(raw.beadIds) ? raw.beadIds[1] : undefined) ?? mariaId;
-      const cordId: string | undefined = type === 'pulsera' ? raw.cordId : undefined;
+      const cordId: string | undefined =
+        type === 'pulsera' || type === 'colombia' ? raw.cordId : undefined;
       // Collar centerpiece medal — fall back to the default for legacy carts.
       const dijeId: string | undefined =
         type === 'collar' ? (findDije(raw.dijeId)?.id ?? DEFAULT_DIJE_ID) : undefined;
@@ -87,7 +99,10 @@ export async function POST(request: NextRequest) {
       const names = type === 'nombres' ? sanitizeNames(raw.names) : undefined;
       const metalId = type === 'nombres' ? findMetal(raw.metalId).id : undefined;
 
-      const colorsOk = !!mariaId && !!jesusId && pepaMap.has(mariaId) && pepaMap.has(jesusId);
+      // The Colombia edition has no admin-managed pepa colors to validate.
+      const colorsOk =
+        type === 'colombia' ||
+        (!!mariaId && !!jesusId && pepaMap.has(mariaId) && pepaMap.has(jesusId));
       const cordOk = type !== 'pulsera' || !!findCord(cordId);
       const namesOk = type !== 'nombres' || (!!names && names.length >= MIN_NAMES);
       if (!colorsOk || !cordOk || !namesOk) {
@@ -106,6 +121,7 @@ export async function POST(request: NextRequest) {
         dijeId,
         names,
         metalId,
+        separatorId,
       };
       const price = configPrice(config);
       orderItems.push({

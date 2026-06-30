@@ -12,7 +12,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { GOLD, GOLD_DEEP, GOLD_LIGHT } from '@/lib/customBracelet';
+import { COLOMBIA_FLAG, GOLD, GOLD_DEEP, GOLD_LIGHT } from '@/lib/customBracelet';
 
 type Family = 'maria' | 'jesus';
 interface Piece {
@@ -519,6 +519,118 @@ export function PulseraPreview({
       </g>
 
       {/* Virgen Milagrosa + dangling crucifix */}
+      <g>
+        <circle cx={P_CX} cy={P_MEDAL_Y} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
+        <VirgenCharm cx={P_CX} cy={P_MEDAL_Y + 18} />
+        <circle cx={P_CX} cy={P_MEDAL_Y + 38} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
+        <CrossCharm x={P_CX} y={P_MEDAL_Y + 44} />
+      </g>
+    </svg>
+  );
+}
+
+// ───────────────────────── Pulsera Colombia preview ─────────────────────────
+//
+// Limited-edition tricolor bracelet: the flag colors (amarillo · azul · rojo)
+// replace the devotional pepas, with a customer-chosen separator pepita (white
+// or black) between each color. Same loop geometry + Virgen + cross as the
+// regular pulsera, so it reads as one of the family.
+
+interface ColorPiece {
+  x: number;
+  y: number;
+  r: number;
+  hex: string;
+  light: boolean;
+}
+interface ColorStep {
+  hex: string;
+  light: boolean;
+  r: number;
+  weight: number;
+}
+
+const FLAG_BEAD_R = 7.6;
+const SEP_BEAD_R = 5.2;
+
+const [FLAG_Y, FLAG_B, FLAG_R] = COLOMBIA_FLAG.map((c) => c.hex);
+
+/** Repeating flag unit (4 amarillo · 2 azul · 2 rojo, ~2:1:1) with separators. */
+function colombiaLoop(sepHex: string, sepLight: boolean): ColorStep[] {
+  const flag = (hex: string): ColorStep => ({ hex, light: false, r: FLAG_BEAD_R, weight: 1 });
+  const sep: ColorStep = { hex: sepHex, light: sepLight, r: SEP_BEAD_R, weight: 0.62 };
+  const unit: ColorStep[] = [
+    ...rep(4, flag(FLAG_Y)),
+    sep,
+    ...rep(2, flag(FLAG_B)),
+    sep,
+    ...rep(2, flag(FLAG_R)),
+    sep,
+  ];
+  return [...unit, ...unit, ...unit];
+}
+
+/** Distribute a weighted pattern of explicitly-colored beads along the loop. */
+function layoutColorLoop(pattern: ColorStep[], o: LoopOpts): ColorPiece[] {
+  const total = pattern.reduce((s, p) => s + p.weight, 0);
+  const pieces: ColorPiece[] = [];
+  let cursor = 0;
+  for (const p of pattern) {
+    const t = (cursor + p.weight / 2) / total;
+    const deg = o.startDeg + (o.endDeg - o.startDeg) * t;
+    const { x, y } = loopPt(o.cx, o.cy, o.rx, o.ry, deg, o.taper ?? 0);
+    pieces.push({ x, y, r: p.r, hex: p.hex, light: p.light });
+    cursor += p.weight;
+  }
+  return pieces;
+}
+
+export function PulseraColombiaPreview({
+  separatorHex,
+  separatorLight,
+  cordHex,
+  animate = true,
+}: {
+  separatorHex: string;
+  separatorLight: boolean;
+  cordHex: string;
+  animate?: boolean;
+}) {
+  const pieces = layoutColorLoop(colombiaLoop(separatorHex, separatorLight), {
+    cx: P_CX,
+    cy: P_CY,
+    rx: P_RX,
+    ry: P_RY,
+    startDeg: 108,
+    endDeg: 432,
+  });
+  return (
+    <svg
+      viewBox="0 0 400 460"
+      className="h-auto w-full drop-shadow-[0_18px_40px_rgba(30,58,138,0.18)]"
+      role="img"
+      aria-label="Vista previa de la Pulsera Colombia edición limitada"
+    >
+      <SvgDefs />
+
+      {/* Thread around the full loop — the knot sits hidden at the back */}
+      <path d={P_LOOP} fill="none" stroke={cordHex} strokeWidth={2.4} strokeLinecap="round" opacity={0.95} />
+
+      {/* Tricolor pepas — re-staggers when the separator changes */}
+      <g key={separatorHex}>
+        {pieces.map((p, i) => (
+          <Bead
+            key={i}
+            piece={{ family: 'maria', x: p.x, y: p.y, r: p.r }}
+            hex={p.hex}
+            light={p.light}
+            index={i}
+            animate={animate}
+          />
+        ))}
+      </g>
+
+      {/* Virgen Milagrosa + dangling crucifix (same as the pulsera) */}
       <g>
         <circle cx={P_CX} cy={P_MEDAL_Y} r={2.4} fill="none" stroke={GOLD} strokeWidth={1.6} />
         <VirgenCharm cx={P_CX} cy={P_MEDAL_Y + 18} />

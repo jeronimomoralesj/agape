@@ -29,9 +29,9 @@ export interface CartItem {
   image: string;
   quantity: number;
   stock: number;
-  /** Present for "Crea tu pulsera / collar / nombres" custom configurations */
+  /** Present for "Crea tu pulsera / collar / nombres / colombia" custom configurations */
   custom?: {
-    type?: 'pulsera' | 'collar' | 'nombres';
+    type?: 'pulsera' | 'collar' | 'nombres' | 'colombia';
     /** Color of the small María pepas */
     mariaId?: string;
     /** Color of the larger Jesús intersection pepas */
@@ -43,6 +43,8 @@ export interface CartItem {
     names?: string[];
     /** Seed-bead metal finish — "Collar de Nombres" only */
     metalId?: string;
+    /** Separator pepita color — "Pulsera Colombia" only */
+    separatorId?: string;
     /** Legacy single-list carts (pre maría/jesús split) */
     beadIds?: string[];
   };
